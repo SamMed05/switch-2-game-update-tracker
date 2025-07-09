@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    
     <!-- Favicon and Social Preview -->
     <link rel="icon" type="image/png" href="switch-2-update-logo.png">
     <link rel="apple-touch-icon" href="switch-2-update-logo.png">
@@ -19,6 +20,12 @@
     <meta property="og:description" content="Community-driven database tracking Nintendo Switch 2 game updates.">
     <meta property="og:image" content="switch-2-update-logo.png">
     <meta property="og:type" content="website">
+
+    <!-- Twitter/X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Switch 2 Game Update Tracker">
+    <meta name="twitter:description" content="Community-driven database tracking Nintendo Switch 2 game updates.">
+    <meta name="twitter:image" content="switch-2-update-logo.png">
 
     <style>
         body {
@@ -642,10 +649,19 @@
             }
         }
 
+        // helper to strip accents and lowercase
+        function normalizeText(text) {
+            return text
+              .normalize('NFD')                    // decompose accents
+              .replace(/[\u0300-\u036f]/g, '')     // remove diacritic marks
+              .toLowerCase();
+        }
+
         function handleSearch() {
-            const query = searchInput.value.toLowerCase().trim();
-            
-            // Get active filters
+            const query = searchInput.value.trim();
+            const normalizedQuery = normalizeText(query);
+
+            // get filters
             const showHasUpdate = filterHasUpdate.checked;
             const showNoUpdate = filterNoUpdate.checked;
             const showSwitch2Edition = filterSwitch2Edition.checked;
@@ -655,15 +671,15 @@
             const noFiltersActive = !showHasUpdate && !showNoUpdate && !showSwitch2Edition && !showUnknown;
             
             const filteredGames = allGames.filter(game => {
-                // First apply text search filter
-                const matchesSearch = game.title.toLowerCase().includes(query) ||
-                    (game.patchType && game.patchType.toLowerCase().includes(query));
-                
-                if (!matchesSearch) return false;
-                
-                // If no filters are active, show all games that match search
+                // normalize both title and patchType
+                const titleMatch = normalizeText(game.title).includes(normalizedQuery);
+                const patchMatch = game.patchType
+                  ? normalizeText(game.patchType).includes(normalizedQuery)
+                  : false;
+
+                if (!titleMatch && !patchMatch) return false;
                 if (noFiltersActive) return true;
-                
+
                 // Apply status filters
                 const gameStatus = game.switch2_status;
                 return (showHasUpdate && gameStatus === 'YES') ||
