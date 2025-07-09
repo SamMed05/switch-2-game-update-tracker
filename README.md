@@ -71,7 +71,7 @@ Please ~~use the feedback form on the website or~~ create an issue on GitHub wit
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.txt) file for details.
 
 ## Acknowledgments
 
