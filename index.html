@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Switch 2 Game Update Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script> <!-- temporary (https://tailwindcss.com/docs/installation/tailwind-cli) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for a more modern look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937; /* bg-gray-800 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563; /* bg-gray-600 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280; /* bg-gray-500 */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+    <div id="app-container" class="min-h-screen flex flex-col container mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-5xl sm:text-5xl font-bold text-white mb-4 bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">
+                Switch 2 Game Update Tracker
+            </h1>
+            <p class="text-xl text-gray-300 mb-6 leading-relaxed">
+                Community-driven database tracking Nintendo Switch 2 game updates.
+            </p>
+            <!-- Info Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-left">
+                <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i data-lucide="database" class="text-indigo-400 w-5 h-5"></i>
+                        <h3 class="font-semibold text-white">Data Source</h3>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        Powered by a community-maintained 
+                        <a href="https://docs.google.com/spreadsheets/d/1sOYZRiOuD9Cnr-e_hlzhRuxuEq5X5Ptwq4yCfwxyfFk/edit?usp=sharing" 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           class="text-indigo-400 hover:text-indigo-300 underline">
+                        Google Sheet
+                        </a>
+                    </p>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i data-lucide="gift" class="text-green-400 w-5 h-5"></i>
+                        <h3 class="font-semibold text-white">Nintendo Free Updates</h3>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        View Nintendo's official 
+                        <a href="https://www.nintendo.com/en-gb/Hardware/Nintendo-Switch-2/Nintendo-Switch-2-Free-game-updates-2786093.html" 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           class="text-green-400 hover:text-green-300 underline">
+                        free updates list
+                        </a>
+                    </p>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i data-lucide="shopping-cart" class="text-purple-400 w-5 h-5"></i>
+                        <h3 class="font-semibold text-white">Upgrade Packs</h3>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        Browse official 
+                        <a href="https://store.nintendo.co.uk/en/games/view-all-games/shop-by-console/nintendo-switch-2-games/upgrade-packs?srsltid=AfmBOooEyui4Lq4fKVSUCunVGdLL0prc5bbbKVifM2nwMdZEMerDqO6y" 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           class="text-purple-400 hover:text-purple-300 underline">
+                        paid upgrade packs
+                        </a>
+                    </p>
+                </div>
+            </div>
+            <!-- Call to Action -->
+            <div class="bg-gradient-to-r from-indigo-600/20 to-purple-600/20 rounded-lg p-6 border border-indigo-500/30">
+                <div class="flex items-center justify-center gap-2 mb-2">
+                    <i data-lucide="heart" class="text-red-400 w-5 h-5"></i>
+                    <span class="text-white font-semibold">Community Powered</span>
+                </div>
+                <p class="text-gray-300 text-sm">
+                    This tracker is maintained by gamers like you. Help us keep it accurate by contributing updates and corrections in the <a href="https://docs.google.com/spreadsheets/d/1sOYZRiOuD9Cnr-e_hlzhRuxuEq5X5Ptwq4yCfwxyfFk/edit?usp=sharing" 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           class="text-indigo-400 hover:text-indigo-300 underline">
+                        Google Sheet</a>!
+                </p>
+            </div>
+        </header>
+
+        <!-- Controls -->
+        <div class="mb-8 flex flex-col gap-4">
+            <div class="flex flex-col sm:flex-row gap-4 items-center">
+                <div class="relative flex-grow w-full">
+                    <input 
+                        type="search" 
+                        id="search-input" 
+                        placeholder="Search for a game..." 
+                        class="w-full bg-transparent border-2 border-indigo-500 focus:border-purple-500 rounded-2xl py-6 pl-16 pr-5 text-white text-2xl placeholder-gray-200/30 font-bold shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-400/30 transition"
+                        style="background: linear-gradient(270deg, #6365f136, #a31caf3b, #6365f144); background-size: 400% 400%; animation: gradientMove 10s ease infinite;"
+                    >
+                    <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                        <i data-lucide="search" class="text-white drop-shadow-lg w-8 h-8"></i>
+                    </div>
+                    <style>
+                        @keyframes gradientMove {
+                            0% {background-position: 0% 50%;}
+                            50% {background-position: 100% 50%;}
+                            100% {background-position: 0% 50%;}
+                        }
+                    </style>
+                </div>
+                
+                <!-- hided for now -->
+                <!-- <div class="flex gap-4 w-full sm:w-auto">
+                     <button id="open-contribution-modal" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition flex items-center justify-center gap-2">
+                        <i data-lucide="plus-circle"></i>
+                        <span>Contribute</span>
+                    </button>
+                    <button id="open-feedback-modal" class="w-full sm:w-auto bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-4 rounded-lg transition flex items-center justify-center gap-2">
+                        <i data-lucide="message-square"></i>
+                        <span>Feedback</span>
+                    </button>
+                </div> -->
+            </div>
+            
+            <!-- Filters -->
+            <div class="flex flex-wrap gap-4 justify-center">
+                <div class="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 hover:border-gray-600 transition">
+                    <input type="checkbox" id="filter-has-update" class="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2">
+                    <label for="filter-has-update" class="text-sm font-medium text-gray-200 cursor-pointer flex items-center gap-1">
+                        <span class="w-2 h-2 bg-green-600 rounded-full"></span>
+                        Has Update
+                    </label>
+                </div>
+                <div class="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 hover:border-gray-600 transition">
+                    <input type="checkbox" id="filter-no-update" class="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500 focus:ring-2">
+                    <label for="filter-no-update" class="text-sm font-medium text-gray-200 cursor-pointer flex items-center gap-1">
+                        <span class="w-2 h-2 bg-red-600 rounded-full"></span>
+                        No Update
+                    </label>
+                </div>
+                <div class="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 hover:border-gray-600 transition">
+                    <input type="checkbox" id="filter-switch2-edition" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2">
+                    <label for="filter-switch2-edition" class="text-sm font-medium text-gray-200 cursor-pointer flex items-center gap-1">
+                        <span class="w-2 h-2 bg-blue-600 rounded-full"></span>
+                        Switch 2 Edition
+                    </label>
+                </div>
+                <div class="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 hover:border-gray-600 transition">
+                    <input type="checkbox" id="filter-unknown" class="w-4 h-4 text-gray-600 bg-gray-700 border-gray-600 rounded focus:ring-gray-500 focus:ring-2">
+                    <label for="filter-unknown" class="text-sm font-medium text-gray-200 cursor-pointer flex items-center gap-1">
+                        <span class="w-2 h-2 bg-gray-600 rounded-full"></span>
+                        Unknown
+                    </label>
+                </div>
+                <button id="clear-filters" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg transition text-sm">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                    Clear Filters
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loader" class="text-center py-10">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto"></div>
+            <p class="mt-4 text-gray-400">Loading games...</p>
+        </div>
+
+        <!-- Game List -->
+        <div id="game-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Game cards will be injected here by JavaScript -->
+        </div>
+        
+        <div id="no-results" class="text-center py-10 text-gray-500 hidden">
+            <i data-lucide="gamepad-2" class="mx-auto h-16 w-16 mb-4"></i>
+            <h3 class="text-2xl font-semibold">No Games Found</h3>
+            <p>Your search didn't match any games. Try a different search term.</p>
+        </div>
+
+    </div>
+
+    <!-- Contribution Modal -->
+    <div id="contribution-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6 relative">
+            <button id="close-contribution-modal" class="absolute top-4 right-4 text-gray-500 hover:text-white">
+                <i data-lucide="x"></i>
+            </button>
+            <h2 class="text-2xl font-bold mb-4 text-white">Contribute an Update</h2>
+            <form id="contribution-form">
+                <div class="mb-4">
+                    <label for="contribution-game-title" class="block text-sm font-medium text-gray-300 mb-1">Game Title</label>
+                    <input type="text" id="contribution-game-title" required class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="mb-4">
+                    <label for="contribution-status" class="block text-sm font-medium text-gray-300 mb-1">Switch 2 Update Status</label>
+                    <select id="contribution-status" required class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="YES">Yes - Update is available</option>
+                        <option value="NO">No - Confirmed no update planned</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label for="contribution-source" class="block text-sm font-medium text-gray-300 mb-1">Source URL (Required)</label>
+                    <input type="url" id="contribution-source" placeholder="https://twitter.com/developer/status/..." required class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                     <p class="text-xs text-gray-500 mt-1">Link to official news, developer tweet, etc.</p>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Submit for Review</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6 relative">
+            <button id="close-feedback-modal" class="absolute top-4 right-4 text-gray-500 hover:text-white">
+                <i data-lucide="x"></i>
+            </button>
+            <h2 class="text-2xl font-bold mb-4 text-white">Give Feedback</h2>
+            <form id="feedback-form">
+                <div class="mb-6">
+                    <label for="feedback-message" class="block text-sm font-medium text-gray-300 mb-1">Your Feedback</label>
+                    <textarea id="feedback-message" rows="4" required class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Tell us what you think, or report a bug..."></textarea>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Send Feedback</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300">
+        <p>Toast message</p>
+    </div>
+
+
+    <script type="module">
+        // --- CONFIGURATION ---
+        const GOOGLE_SHEET_ID = '1sOYZRiOuD9Cnr-e_hlzhRuxuEq5X5Ptwq4yCfwxyfFk';
+        const SHEET_NAME = 'Switch 2 FPS/Resolution List';
+        const SHEET_RANGE = 'A7:Z'; // Start from row 7 to skip messy headers
+        const GOOGLE_SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&range=${SHEET_RANGE}`;
+        
+        // Image sources configuration (old)
+        // const STEAMGRIDDB_API_URL = 'https://www.steamgriddb.com/api/v2';
+        // const IGDB_API_URL = 'https://api.igdb.com/v4';
+
+        // --- GLOBAL STATE ---
+        let allGames = [];
+        let gameDatabase = new Map(); // Cache for game data
+
+        // --- DOM ELEMENTS ---
+        const loader = document.getElementById('loader');
+        const gameList = document.getElementById('game-list');
+        const searchInput = document.getElementById('search-input');
+        const noResults = document.getElementById('no-results');
+        
+        // Filter elements
+        const filterHasUpdate = document.getElementById('filter-has-update');
+        const filterNoUpdate = document.getElementById('filter-no-update');
+        const filterSwitch2Edition = document.getElementById('filter-switch2-edition');
+        const filterUnknown = document.getElementById('filter-unknown');
+        const clearFiltersBtn = document.getElementById('clear-filters');
+        
+        const contributionModal = document.getElementById('contribution-modal');
+        const contributionForm = document.getElementById('contribution-form');
+        const openContributionModalBtn = document.getElementById('open-contribution-modal');
+        const closeContributionModalBtn = document.getElementById('close-contribution-modal');
+
+        const feedbackModal = document.getElementById('feedback-modal');
+        const feedbackForm = document.getElementById('feedback-form');
+        const openFeedbackModalBtn = document.getElementById('open-feedback-modal');
+        const closeFeedbackModalBtn = document.getElementById('close-feedback-modal');
+
+        const toast = document.getElementById('toast');
+
+        // --- HELPER FUNCTIONS ---
+        
+        // Fetch game image and details from multiple sources
+        async function fetchNintendoGameDetails(gameTitle) {
+            if (gameDatabase.has(gameTitle)) return gameDatabase.get(gameTitle);
+            // Primary: RAWG, then CheapShark
+            const sources = [
+                () => fetchFromRawgAPI(gameTitle),
+                () => fetchFromCheapSharkAPI(gameTitle)
+            ];
+            for (const source of sources) {
+                try {
+                    const result = await source();
+                    if (result && result.imageUrl) {
+                        gameDatabase.set(gameTitle, result);
+                        return result;
+                    }
+                } catch { /* ignore */ }
+            }
+            // final fallback placeholder
+            const fallback = { title: gameTitle, imageUrl: generateGamePlaceholder(gameTitle), nsuid: null, url: null };
+            gameDatabase.set(gameTitle, fallback);
+            return fallback;
+        }
+
+        // Fetch game details from CheapShark API (free)
+        async function fetchFromCheapSharkAPI(gameTitle) {
+            try {
+                const response = await fetch(`https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(gameTitle)}&limit=1`);
+                if (!response.ok) return null;
+                const results = await response.json();
+                if (results.length === 0) return null;
+                const game = results[0];
+                return { title: game.external, imageUrl: game.thumb, nsuid: null, url: null };
+            } catch { return null; }
+        }
+
+        // Fetch game details from RAWG API with API key
+        async function fetchFromRawgAPI(gameTitle) {
+            // const apiKey = "...";
+            // Import RAWG_API_KEY from .env file (Vite, Parcel, or similar bundlers)
+            // const apiKey = import.meta.env.VITE_RAWG_API_KEY;
+            // very simple and mostly useless obfuscation (i want to keep this all clientside)
+            const apiKeyPart1 = "641865843baa4";
+            const apiKeyPart2 = "add831986daf8119131";
+            const apiKey = apiKeyPart1 + apiKeyPart2;
+
+            try {
+                const url = `https://api.rawg.io/api/games?key=${apiKey}&search=${encodeURIComponent(gameTitle)}&page_size=1&platforms=7`;
+                const response = await fetch(url);
+                if (!response.ok) return null;
+                const data = await response.json();
+                const game = data.results && data.results[0];
+                if (!game) return null;
+                return { title: game.name, imageUrl: game.background_image, nsuid: null, url: `https://rawg.io/games/${game.slug}` };
+            } catch { return null; }
+        }
+
+        // Lazy load images using Intersection Observer
+        function setupLazyLoading() {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        const gameTitle = img.dataset.gameTitle;
+                        
+                        if (gameTitle && !img.dataset.loaded) {
+                            img.dataset.loaded = 'true';
+                            fetchNintendoGameDetails(gameTitle).then(gameDetails => {
+                                if (gameDetails.imageUrl && !gameDetails.imageUrl.includes('placehold.co')) {
+                                    img.src = gameDetails.imageUrl;
+                                }
+                            });
+                        }
+                        observer.unobserve(img);
+                    }
+                });
+            });
+
+            // Observe all game images
+            document.querySelectorAll('img[data-game-title]').forEach(img => {
+                imageObserver.observe(img);
+            });
+        }
+
+        // Parses a CSV string into an array of objects. Handles quoted fields.
+        function parseCSV(csvText) {
+            const lines = csvText.split(/\r?\n/);
+            if (lines.length < 2) return [];
+            
+            // Robustly extract headers, removing quotes
+            const headers = lines[0].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(h => h.replace(/"/g, '').trim()) || [];
+            const data = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i] || lines[i].trim() === '') continue;
+                
+                // This regex handles quoted fields containing commas
+                const values = lines[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+                if (!values || values.length !== headers.length) continue;
+
+                const obj = {};
+                for (let j = 0; j < headers.length; j++) {
+                    // Remove quotes from values and trim whitespace
+                    obj[headers[j]] = values[j] ? values[j].replace(/"/g, '').trim() : '';
+                }
+                data.push(obj);
+            }
+            return data;
+        }
+
+        // Fetches data from the Google Sheet and processes it
+        async function fetchAndProcessGames() {
+            loader.style.display = 'block';
+            loader.querySelector('p').textContent = 'Loading games from Google Sheet...';
+            
+            try {
+                const response = await fetch(GOOGLE_SHEET_CSV_URL);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                const csvText = await response.text();
+                const sheetData = parseCSV(csvText);
+
+                if (sheetData.length === 0) {
+                    throw new Error("Parsed CSV data is empty. Check sheet permissions or range.");
+                }
+
+                // Detect CSV column keys - Google Sheets creates messy headers, so we need to be more flexible
+                const headers = Object.keys(sheetData[0]);
+                console.log('Available headers:', headers);
+                
+                // Find the column that contains the game titles (usually first column with actual game names)
+                const titleKey = headers.find(k => 
+                    k.includes('Game') || 
+                    k.includes('Advance Wars') || 
+                    sheetData[0][k].length > 0 && sheetData[0][k] !== 'N/A'
+                ) || headers[0];
+                
+                // Find patch type column
+                const patchKey = headers.find(k => 
+                    k.toLowerCase().includes('patch type') || 
+                    k.toLowerCase().includes('patch') ||
+                    k.toLowerCase().includes('unpatched')
+                );
+                
+                // Find source column (if exists)
+                const sourceKey = headers.find(k => 
+                    k.toLowerCase().includes('source') ||
+                    k.toLowerCase().includes('link')
+                );
+                
+                console.log('Detected CSV columns:', { titleKey, patchKey, sourceKey });
+                console.log('Sample data from first row:', {
+                    title: sheetData[0][titleKey],
+                    patch: sheetData[0][patchKey],
+                    source: sourceKey ? sheetData[0][sourceKey] : 'N/A'
+                });
+
+                loader.querySelector('p').textContent = 'Processing game data...';
+                console.log('Fetched sheet data:', sheetData.length, 'entries');
+
+                const processedGames = [];
+                
+                // Find the patch column index for generating sheet URLs
+                const patchColumnIndex = patchKey ? headers.indexOf(patchKey) : -1;
+                
+                // Process all games quickly with placeholder images first
+                for (let i = 0; i < sheetData.length; i++) {
+                    const row = sheetData[i];
+                    const gameTitle = row[titleKey];
+                    
+                    if (!gameTitle || gameTitle.trim() === '' || gameTitle === 'N/A') {
+                        continue;
+                    }
+
+                    const patchType = patchKey ? row[patchKey] : '';
+                    const status = patchType && patchType.toLowerCase().includes('switch 2 edition') ? 'SWITCH2_EDITION' :
+                                 patchType && patchType.toLowerCase().includes('free update') ? 'YES' : 
+                                 patchType && patchType.toLowerCase().includes('no update') ? 'NO' : 'UNKNOWN';
+
+                    // Calculate the actual row number in the sheet (accounting for the range starting at row 7 or 8... might be broken)
+                    const actualRowNumber = i + 8;
+                    
+                    // Generate sheet cell URL for patch type
+                    const patchCellUrl = patchColumnIndex >= 0 ? 
+                        `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/edit?gid=0#gid=0&range=${String.fromCharCode(65 + patchColumnIndex)}${actualRowNumber}` : 
+                        null;
+
+                    processedGames.push({
+                        title: gameTitle.trim(),
+                        switch2_status: status,
+                        switch2_source: sourceKey ? row[sourceKey] : "", 
+                        imageUrl: `https://placehold.co/600x400/1f2937/ffffff?text=${encodeURIComponent(gameTitle.trim())}`,
+                        nsuid: null,
+                        patchType: patchType,
+                        patchCellUrl: patchCellUrl,
+                        originalRow: row
+                    });
+                    
+                    // Update progress
+                    if (i % 50 === 0) {
+                        loader.querySelector('p').textContent = `Processing games... (${i + 1}/${sheetData.length})`;
+                        await new Promise(resolve => setTimeout(resolve, 1));
+                    }
+                }
+
+                // Define a list of game titles to exclude
+                const excludedTitles = [
+                    "Anyone tested GameCube Switch Online update if it is improved? (input lag and others)",
+                    "EGGCONSOLE",
+                    // Add more titles here if needed
+                ];
+
+                // Filter out the excluded game titles
+                allGames = processedGames.filter(game => {
+                    return !excludedTitles.some(excludedTitle => game.title.includes(excludedTitle));
+                });
+
+                allGames = allGames.sort((a, b) => a.title.localeCompare(b.title));
+                console.log('Processed games:', allGames.length);
+                
+                loader.style.display = 'none';
+                handleSearch();
+
+            } catch (error) {
+                console.error("Error fetching from Google Sheet:", error);
+                loader.innerHTML = `<p class="text-red-500">Error loading games: ${error.message}</p>`;
+            }
+        }
+        
+        function showToast(message, isError = false) {
+            toast.textContent = message;
+            toast.className = `fixed bottom-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ${isError ? 'bg-red-600' : 'bg-green-600'}`;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        function getStatusIndicator(status) {
+            switch (status) {
+                case 'YES':
+                    return `<div class="flex items-center gap-2"><span class="px-3 py-1 text-xs font-semibold text-green-100 bg-green-600 rounded-full">Yes</span><span class="text-sm text-gray-200">Update Available</span></div>`;
+                case 'NO':
+                    return `<div class="flex items-center gap-2"><span class="px-3 py-1 text-xs font-semibold text-red-100 bg-red-600 rounded-full">No</span><span class="text-sm text-gray-200">No Update Planned</span></div>`;
+                case 'SWITCH2_EDITION':
+                    return `<div class="flex items-center gap-2"><span class="px-3 py-1 text-xs font-semibold text-blue-100 bg-blue-600 rounded-full">S2</span><span class="text-sm text-gray-200">Switch 2 Edition</span></div>`;
+                default:
+                    return `<div class="flex items-center gap-2"><span class="px-3 py-1 text-xs font-semibold text-gray-100 bg-gray-600 rounded-full">?</span><span class="text-sm text-gray-200">Unknown</span></div>`;
+            }
+        }
+
+        function renderGames(games) {
+            if (games.length === 0 && searchInput.value) {
+                noResults.classList.remove('hidden');
+                gameList.innerHTML = '';
+            } else {
+                noResults.classList.add('hidden');
+                gameList.innerHTML = games.map(game => `
+                    <div class="bg-gray-800 rounded-2xl shadow-xl overflow-hidden flex flex-col border border-gray-700 transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/40 hover:border-indigo-500/60 hover:z-10"
+                         style="will-change: transform;">
+                        <div class="relative">
+                            <img src="${game.imageUrl}" 
+                                 alt="${game.title}" 
+                                 data-game-title="${game.title}"
+                                 class="w-full h-auto object-cover bg-gray-900" 
+                                 style="max-height: 220px;"
+                                 onerror="this.onerror=null;this.src='https://placehold.co/600x400/111827/4f46e5?text=${encodeURIComponent(game.title)}';">
+                            <div class="absolute top-0 right-0 p-2 rounded-bl-lg backdrop-blur-sm"
+                                style="
+                                   background-color: ${
+                                      game.switch2_status === 'YES'
+                                         ? 'rgba(5, 46, 22, 0.85)'    // dark green
+                                         : game.switch2_status === 'NO'
+                                            ? 'rgba(67, 16, 16, 0.85)' // dark red
+                                            : game.switch2_status === 'SWITCH2_EDITION'
+                                               ? 'rgba(30, 58, 138, 0.85)' // dark blue
+                                               : 'rgba(31, 41, 55, 0.92)'  // dark gray
+                                   };
+                                   ">
+                                ${getStatusIndicator(game.switch2_status)}
+                            </div>
+                        </div>
+                        <div class="flex flex-col flex-grow p-5">
+                            <h3 class="text-lg font-bold text-white mb-1 truncate" title="${game.title}">${game.title}</h3>
+                            ${game.patchType ? `
+                                <div class="text-sm mb-2 ${game.patchType.toLowerCase().includes('unpatched') ? 'text-red-400' : 'text-indigo-300'}">
+                                    Patch Type: ${game.patchCellUrl ? `
+                                        <a href="${game.patchCellUrl}" 
+                                           target="_blank" 
+                                           rel="noopener noreferrer" 
+                                           class="font-semibold underline decoration-dotted hover:opacity-80 transition-opacity" 
+                                           title="View in Google Sheets - ${game.patchType}">
+                                            ${game.patchType}
+                                        </a>
+                                    ` : `<span class="font-semibold">${game.patchType}</span>`}
+                                </div>
+                            ` : ''}
+                            <div class="text-xs text-gray-400 mb-3 min-h-[1.25rem]">
+                                ${game.switch2_source ? `<a href="${game.switch2_source}" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-400 underline decoration-dotted">Source</a>` : ''}
+                            </div>
+                            <div class="flex gap-2 mt-auto">
+                                <a href="https://www.google.com/search?q=${encodeURIComponent(game.title + ' nintendo switch 2 update')}" target="_blank" rel="noopener noreferrer"
+                                    class="flex-1 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-3 rounded-lg transition text-xs sm:text-sm"
+                                    title="Search Switch 2 Update News for ${game.title}">
+                                    <i data-lucide="search" class="mr-1 w-4 h-4"></i> Search News
+                                </a>
+                                <button type="button"
+                                    class="flex-1 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-3 rounded-lg transition text-xs sm:text-sm"
+                                    title="Report or contribute update info for ${game.title}"
+                                    onclick="window.prefillContribution && window.prefillContribution('${encodeURIComponent(game.title)}')">
+                                    <i data-lucide="plus-circle" class="mr-1 w-4 h-4"></i> Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                // Re-render icons after DOM update
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+                
+                // Setup lazy loading after rendering
+                setupLazyLoading();
+            }
+        }
+
+        function handleSearch() {
+            const query = searchInput.value.toLowerCase().trim();
+            
+            // Get active filters
+            const showHasUpdate = filterHasUpdate.checked;
+            const showNoUpdate = filterNoUpdate.checked;
+            const showSwitch2Edition = filterSwitch2Edition.checked;
+            const showUnknown = filterUnknown.checked;
+            
+            // If no filters are active, show all games
+            const noFiltersActive = !showHasUpdate && !showNoUpdate && !showSwitch2Edition && !showUnknown;
+            
+            const filteredGames = allGames.filter(game => {
+                // First apply text search filter
+                const matchesSearch = game.title.toLowerCase().includes(query) ||
+                    (game.patchType && game.patchType.toLowerCase().includes(query));
+                
+                if (!matchesSearch) return false;
+                
+                // If no filters are active, show all games that match search
+                if (noFiltersActive) return true;
+                
+                // Apply status filters
+                const gameStatus = game.switch2_status;
+                return (showHasUpdate && gameStatus === 'YES') ||
+                       (showNoUpdate && gameStatus === 'NO') ||
+                       (showSwitch2Edition && gameStatus === 'SWITCH2_EDITION') ||
+                       (showUnknown && gameStatus === 'UNKNOWN');
+            });
+            
+            renderGames(filteredGames);
+        }
+        
+        function clearFilters() {
+            filterHasUpdate.checked = false;
+            filterNoUpdate.checked = false;
+            filterSwitch2Edition.checked = false;
+            filterUnknown.checked = false;
+            handleSearch();
+        }
+        
+        // --- SIMPLE FORM HANDLING (WITHOUT FIREBASE) ---
+        function handleContributionSubmit(e) {
+            e.preventDefault();
+            const gameTitle = document.getElementById('contribution-game-title').value;
+            const status = document.getElementById('contribution-status').value;
+            const source = document.getElementById('contribution-source').value;
+            
+            // Since we don't have a backend, we'll just show a message (for implementation, maybe send this to a service like Netlify Forms, Formspree, etc.)
+            console.log('Contribution submitted:', { gameTitle, status, source });
+            
+            showToast('Thank you for your contribution! (Note: This is still a demo - no data was actually saved)');
+            contributionForm.reset();
+            contributionModal.classList.add('hidden');
+        }
+
+        function handleFeedbackSubmit(e) {
+            e.preventDefault();
+            const message = document.getElementById('feedback-message').value;
+            
+            // Since we don't have a backend, we'll just show a message
+            console.log('Feedback submitted:', { message });
+            
+            showToast('Thank you for your feedback! (Note: This is still a demo - no data was actually saved)');
+            feedbackForm.reset();
+            feedbackModal.classList.add('hidden');
+        }
+
+        // --- EVENT LISTENERS ---
+        searchInput.addEventListener('input', handleSearch);
+        
+        // Filter event listeners
+        filterHasUpdate.addEventListener('change', handleSearch);
+        filterNoUpdate.addEventListener('change', handleSearch);
+        filterSwitch2Edition.addEventListener('change', handleSearch);
+        filterUnknown.addEventListener('change', handleSearch);
+        clearFiltersBtn.addEventListener('click', clearFilters);
+
+        const setupModal = (openBtn, closeBtn, modal) => {
+            if (openBtn && closeBtn && modal) {
+                openBtn.addEventListener('click', () => modal.classList.remove('hidden'));
+                closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) modal.classList.add('hidden');
+                });
+            }
+        };
+
+        setupModal(openContributionModalBtn, closeContributionModalBtn, contributionModal);
+        setupModal(openFeedbackModalBtn, closeFeedbackModalBtn, feedbackModal);
+
+        contributionForm.addEventListener('submit', handleContributionSubmit);
+        feedbackForm.addEventListener('submit', handleFeedbackSubmit);
+        // Fallback: always allow closing the contribution modal via the close button
+        if (closeContributionModalBtn && contributionModal) {
+            closeContributionModalBtn.addEventListener('click', () => contributionModal.classList.add('hidden'));
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Wait a bit to ensure Lucide is fully loaded
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Initialize Lucide icons first
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+                
+                // Then fetch and process games
+                await fetchAndProcessGames();
+                
+                // Refresh icons after content is loaded
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            } catch (error) {
+                console.error("Application initialization failed:", error);
+                loader.innerHTML = `<p class="text-red-500">Failed to initialize application: ${error.message}</p>`;
+            }
+        });
+
+        // Add this helper to window for button onclick
+        window.prefillContribution = function(title) {
+            const decodedTitle = decodeURIComponent(title);
+            const input = document.getElementById('contribution-game-title');
+            if (input) input.value = decodedTitle;
+            const modal = document.getElementById('contribution-modal');
+            if (modal) modal.classList.remove('hidden');
+        };
+    </script>
+
+</body>
+</html>
