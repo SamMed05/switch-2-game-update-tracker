@@ -19,6 +19,18 @@ Here's how the website looks:
 - **Data Source**: Google Sheets API
 - **Game Images**: RAWG API, CheapShark API
 
+## How to Run
+
+This is a simple static website that doesn't require any build process or dependencies.
+
+### Use Live Server in VS Code
+
+1. Install the "Live Server" extension in VS Code
+2. Right-click on `index.html`
+3. Select "Open with Live Server"
+
+This will automatically open the website in your browser with live reload functionality.
+
 ## Contributing
 
 Any contribution is highly appreciated! Here are ways you can help:
