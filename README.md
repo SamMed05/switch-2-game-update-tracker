@@ -1,5 +1,11 @@
 # Nintendo Switch 2 Game Update Tracker
 
+<p align="center">
+   <a href="https://sammed05.github.io/switch-2-game-update-tracker/">
+      <img src="https://img.shields.io/badge/Visit%20the%20Website-🎮-brightgreen?style=for-the-badge" alt="Visit the Website">
+   </a>
+</p>
+
 A simple single-file web application that tracks Nintendo Switch 2 game updates (whether it's frame rate, resolution, stability, etc.). This project helps gamers stay informed about which games have received updates for the Nintendo Switch 2 console.
 
 The data for Switch 2 udpated come from this [awesome community-driven Google Sheet](https://docs.google.com/spreadsheets/d/1sOYZRiOuD9Cnr-e_hlzhRuxuEq5X5Ptwq4yCfwxyfFk/edit?usp=sharing).
