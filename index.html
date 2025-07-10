@@ -46,6 +46,12 @@
             background: #6b7280; /* bg-gray-500 */
         }
     </style>
+    <style>
+        /* Sticky search controls shrink on scroll */
+        #controls.scrolled {
+            transform: translateY(-5px) scale(0.95);
+        }
+    </style>
 </head>
 <body class="bg-gray-900 text-gray-200">
 
@@ -134,7 +140,7 @@
         </header>
 
         <!-- Controls -->
-        <div class="mb-8 flex flex-col gap-4">
+        <div id="controls" class="mb-8 flex flex-col gap-4 sticky top-4 z-30 px-4 py-2 transition-transform duration-300 ease-in-out">
             <div class="flex flex-col sm:flex-row gap-4 items-center">
                 <div class="relative flex-grow w-full">
                     <input 
@@ -142,7 +148,7 @@
                         id="search-input" 
                         placeholder="Search for a game..." 
                         class="w-full bg-transparent border-2 border-indigo-500 focus:border-purple-500 rounded-2xl py-6 pl-16 pr-5 text-white text-2xl placeholder-gray-200/30 font-bold shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-400/30 transition"
-                        style="background: linear-gradient(270deg, #6365f136, #a31caf3b, #6365f144); background-size: 400% 400%; animation: gradientMove 10s ease infinite;"
+                        style="background: linear-gradient(270deg, #5153c57e, #77148080, #4446a771); background-size: 400% 400%; animation: gradientMove 10s ease infinite;"
                     >
                     <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                         <i data-lucide="search" class="text-white drop-shadow-lg w-8 h-8"></i>
@@ -707,7 +713,14 @@
         filterUnknown.addEventListener('change', handleSearch);
         clearFiltersBtn.addEventListener('click', clearFilters);
 
-        const setupModal = (openBtn, closeBtn, modal) => {
+        // Scroll listener to shrink and move the controls on scroll
+        const controls = document.getElementById('controls');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) controls.classList.add('scrolled');
+            else controls.classList.remove('scrolled');
+        });
+
+         const setupModal = (openBtn, closeBtn, modal) => {
             if (openBtn && closeBtn && modal) {
                 openBtn.addEventListener('click', () => modal.classList.remove('hidden'));
                 closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
