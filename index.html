@@ -377,26 +377,39 @@
 
         // Lazy load images using Intersection Observer
         function setupLazyLoading() {
+            const timers = new WeakMap();
             const imageObserver = new IntersectionObserver((entries, observer) => {
                 entries.forEach(entry => {
+                    const img = entry.target;
                     if (entry.isIntersecting) {
-                        const img = entry.target;
-                        const gameTitle = img.dataset.gameTitle;
-                        
-                        if (gameTitle && !img.dataset.loaded) {
-                            img.dataset.loaded = 'true';
-                            fetchNintendoGameDetails(gameTitle).then(gameDetails => {
-                                if (gameDetails.imageUrl && !gameDetails.imageUrl.includes('placehold.co')) {
-                                    img.src = gameDetails.imageUrl;
-                                }
-                            });
+                        if (img.dataset.loaded) {
+                            observer.unobserve(img);
+                            return;
                         }
-                        observer.unobserve(img);
+                        const timerId = setTimeout(() => {
+                            const gameTitle = img.dataset.gameTitle;
+                            if (gameTitle) {
+                                img.dataset.loaded = 'true';
+                                fetchNintendoGameDetails(gameTitle).then(gameDetails => {
+                                    if (gameDetails.imageUrl && !gameDetails.imageUrl.includes('placehold.co')) {
+                                        img.src = gameDetails.imageUrl;
+                                    }
+                                });
+                            }
+                            observer.unobserve(img);
+                        }, 1000);
+                        timers.set(img, timerId);
+                    } else {
+                        // Cancel delay if scrolled out of view too soon
+                        const timerId = timers.get(img);
+                        if (timerId) {
+                            clearTimeout(timerId);
+                            timers.delete(img);
+                        }
                     }
                 });
-            });
+            }, { threshold: 0.1 });
 
-            // Observe all game images
             document.querySelectorAll('img[data-game-title]').forEach(img => {
                 imageObserver.observe(img);
             });
