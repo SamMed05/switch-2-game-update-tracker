@@ -397,7 +397,7 @@
                                 });
                             }
                             observer.unobserve(img);
-                        }, 1000);
+                        }, 500);
                         timers.set(img, timerId);
                     } else {
                         // Cancel delay if scrolled out of view too soon
@@ -445,118 +445,76 @@
         async function fetchAndProcessGames() {
             loader.style.display = 'block';
             loader.querySelector('p').textContent = 'Loading games from Google Sheet...';
-            
             try {
-                const response = await fetch(GOOGLE_SHEET_CSV_URL);
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok: ${response.statusText}`);
-                }
-                const csvText = await response.text();
-                const sheetData = parseCSV(csvText);
-
-                if (sheetData.length === 0) {
-                    throw new Error("Parsed CSV data is empty. Check sheet permissions or range.");
-                }
-
-                // Detect CSV column keys - Google Sheets creates messy headers, so we need to be more flexible
-                const headers = Object.keys(sheetData[0]);
-                console.log('Available headers:', headers);
-                
-                // Find the column that contains the game titles (usually first column with actual game names)
-                const titleKey = headers.find(k => 
-                    k.includes('Game') || 
-                    k.includes('Advance Wars') || 
-                    sheetData[0][k].length > 0 && sheetData[0][k] !== 'N/A'
-                ) || headers[0];
-                
-                // Find patch type column
-                const patchKey = headers.find(k => 
-                    k.toLowerCase().includes('patch type') || 
-                    k.toLowerCase().includes('patch') ||
-                    k.toLowerCase().includes('unpatched')
-                );
-                
-                // Find source column (if exists)
-                const sourceKey = headers.find(k => 
-                    k.toLowerCase().includes('source') ||
-                    k.toLowerCase().includes('link')
-                );
-                
-                console.log('Detected CSV columns:', { titleKey, patchKey, sourceKey });
-                console.log('Sample data from first row:', {
-                    title: sheetData[0][titleKey],
-                    patch: sheetData[0][patchKey],
-                    source: sourceKey ? sheetData[0][sourceKey] : 'N/A'
-                });
-
-                loader.querySelector('p').textContent = 'Processing game data...';
-                console.log('Fetched sheet data:', sheetData.length, 'entries');
-
+                // Fetch data via Google Visualization API (JSON) to get proper header and data rows
+                const JSON_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}&range=${SHEET_RANGE}&tqx=out:json`;
+                const response = await fetch(JSON_URL);
+                if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+                const text = await response.text();
+                // Extract JSON payload
+                const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\((.*)\)/s);
+                if (!jsonMatch) throw new Error('Invalid JSON response from Google Sheets');
+                const table = JSON.parse(jsonMatch[1]).table;
+                // Keep full row list for lookup
+                const tableRows = table.rows;
+                const cols = table.cols.map(c => c.label || '');
+                // determine column indexes
+                const patchIdx = cols.findIndex(l => /patch/i.test(l));
+                const sourceIdx = cols.findIndex(l => /source|link/i.test(l));
+                // starting row number from range
+                const startRow = parseInt((SHEET_RANGE.match(/\d+/) || [1])[0], 10);
+                // use all rows as data rows
+                const rawRows = tableRows;
                 const processedGames = [];
-                
-                // Find the patch column index for generating sheet URLs
-                const patchColumnIndex = patchKey ? headers.indexOf(patchKey) : -1;
-                
-                // Process all games quickly with placeholder images first
-                for (let i = 0; i < sheetData.length; i++) {
-                    const row = sheetData[i];
-                    const gameTitle = row[titleKey];
-                    
-                    if (!gameTitle || gameTitle.trim() === '' || gameTitle === 'N/A') {
-                        continue;
-                    }
-
-                    const patchType = patchKey ? row[patchKey] : '';
-                    const status = patchType && patchType.toLowerCase().includes('switch 2 edition') ? 'SWITCH2_EDITION' :
-                                 patchType && patchType.toLowerCase().includes('free update') ? 'YES' : 
-                                 patchType && patchType.toLowerCase().includes('no update') ? 'NO' : 'UNKNOWN';
-
-                    // Calculate the actual row number in the sheet (accounting for the range starting at row 7 or 8... might be broken)
-                    const actualRowNumber = i + 8;
-                    
-                    // Generate sheet cell URL for patch type
-                    const patchCellUrl = patchColumnIndex >= 0 ? 
-                        `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/edit?gid=0#gid=0&range=${String.fromCharCode(65 + patchColumnIndex)}${actualRowNumber}` : 
-                        null;
-
+                for (let i = 0; i < rawRows.length; i++) {
+                    const cells = rawRows[i].c || [];
+                    const title = cells[0] && cells[0].v ? String(cells[0].v).trim() : '';
+                    if (!title || title === 'N/A') continue;
+                    const patchType = patchIdx >= 0 && cells[patchIdx] && cells[patchIdx].v ? String(cells[patchIdx].v) : '';
+                    const status = patchType.toLowerCase().includes('switch 2 edition') ? 'SWITCH2_EDITION'
+                        : patchType.toLowerCase().includes('free update') ? 'YES'
+                        : patchType.toLowerCase().includes('no update') ? 'NO' : 'UNKNOWN';
+                    // calculate actual sheet row by finding the row index for this title
+                    const tableIndex = tableRows.findIndex(r => r.c && r.c[0] && String(r.c[0].v).trim() === title);
+                    const actualRow = startRow + tableIndex + 1;
+                     // column letter helper
+                     const colLetter = idx => {
+                        let s = '';
+                        while (idx >= 0) { s = String.fromCharCode(65 + (idx % 26)) + s; idx = Math.floor(idx/26) - 1; }
+                        return s;
+                    };
+                    const patchCellUrl = patchIdx >= 0
+                        ? `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/edit?gid=0&range=${colLetter(patchIdx)}${actualRow}`
+                        : null;
                     processedGames.push({
-                        title: gameTitle.trim(),
+                        title,
                         switch2_status: status,
-                        switch2_source: sourceKey ? row[sourceKey] : "", 
-                        imageUrl: `https://placehold.co/600x400/1f2937/ffffff?text=${encodeURIComponent(gameTitle.trim())}`,
+                        switch2_source: sourceIdx >= 0 && cells[sourceIdx] && cells[sourceIdx].v ? String(cells[sourceIdx].v) : '',
+                        imageUrl: `https://placehold.co/600x400/1f2937/ffffff?text=${encodeURIComponent(title)}`,
                         nsuid: null,
-                        patchType: patchType,
-                        patchCellUrl: patchCellUrl,
-                        originalRow: row
+                        patchType,
+                        patchCellUrl,
+                        originalRow: cells
                     });
-                    
-                    // Update progress
                     if (i % 50 === 0) {
-                        loader.querySelector('p').textContent = `Processing games... (${i + 1}/${sheetData.length})`;
-                        await new Promise(resolve => setTimeout(resolve, 1));
+                        loader.querySelector('p').textContent = `Processing games... (${i + 1}/${rawRows.length})`;
+                        await new Promise(r => setTimeout(r, 1));
                     }
                 }
-
-                // Define a list of game titles to exclude
+                // Exclude specific titles if needed
                 const excludedTitles = [
                     "Anyone tested GameCube Switch Online update if it is improved? (input lag and others)",
                     "EGGCONSOLE",
                     // Add more titles here if needed
                 ];
-
-                // Filter out the excluded game titles
-                allGames = processedGames.filter(game => {
-                    return !excludedTitles.some(excludedTitle => game.title.includes(excludedTitle));
-                });
-
-                allGames = allGames.sort((a, b) => a.title.localeCompare(b.title));
-                console.log('Processed games:', allGames.length);
-                
+                const filteredGames = processedGames.filter(game =>
+                    !excludedTitles.some(excluded => game.title.includes(excluded))
+                );
+                allGames = filteredGames.sort((a, b) => a.title.localeCompare(b.title));
                 loader.style.display = 'none';
                 handleSearch();
-
             } catch (error) {
-                console.error("Error fetching from Google Sheet:", error);
+                console.error('Error fetching from Google Sheet:', error);
                 loader.innerHTML = `<p class="text-red-500">Error loading games: ${error.message}</p>`;
             }
         }
