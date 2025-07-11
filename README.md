@@ -6,7 +6,7 @@
    </a>
 </p>
 
-A simple single-file web application that tracks Nintendo Switch 2 game updates (whether it's frame rate, resolution, stability, etc.). This project helps gamers stay informed about which games have received updates for the Nintendo Switch 2 console.
+A simple web application that tracks Nintendo Switch 2 game updates (whether it's frame rate, resolution, stability, etc.). This project helps gamers stay informed about which games have received updates for the Nintendo Switch 2 console.
 
 The data for Switch 2 udpated come from this [awesome community-driven Google Sheet](https://docs.google.com/spreadsheets/d/1sOYZRiOuD9Cnr-e_hlzhRuxuEq5X5Ptwq4yCfwxyfFk/edit?usp=sharing).
 
@@ -27,15 +27,33 @@ Here's how the website looks:
 
 ## How to Run
 
-This is a simple static website that doesn't require any build process or dependencies.
+1. Clone the repo and enter its folder:
 
-### Use Live Server in VS Code
+   ```bash
+   git clone https://github.com/SamMed05/switch-2-game-update-tracker.git
+   cd switch-2-game-update-tracker
+   ```
 
-1. Install the "Live Server" extension in VS Code
-2. Right-click on `index.html`
-3. Select "Open with Live Server"
+2. Install dependencies:
 
-This will automatically open the website in your browser with live reload functionality.
+   ```bash
+   npm install
+   npm install netlify-cli -g
+   ```
+
+3. Create a `.env.local` file with your API keys (IGDB and/or RAWG):
+
+   ```bash
+   IGDB_CLIENT_ID=xxxxxxxxxxxx
+   IGDB_CLIENT_SECRET=xxxxxxxxxxxx
+   RAWG_API_KEY=xxxxxxxxxxxx
+   ```
+
+   For IGDB API you can follow the [official documentation](https://api-docs.igdb.com/#getting-started).
+
+4. Start local development (includes Netlify Functions) with `netlify dev`.
+
+5. Deploy: push to `main` to trigger your Netlify/GitHub Pages deployment with configured environment variables.
 
 ## Contributing
 
