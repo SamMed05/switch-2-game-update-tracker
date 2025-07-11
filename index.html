@@ -330,8 +330,9 @@
         // Fetch game image and details from multiple sources
         async function fetchNintendoGameDetails(gameTitle) {
             if (gameDatabase.has(gameTitle)) return gameDatabase.get(gameTitle);
-            // Primary: RAWG, then CheapShark
+            // Primary: IGDB, then RAWG, then CheapShark
             const sources = [
+                () => fetchFromIGDBAPI(gameTitle),
                 () => fetchFromRawgAPI(gameTitle),
                 () => fetchFromCheapSharkAPI(gameTitle)
             ];
@@ -350,6 +351,125 @@
             return fallback;
         }
 
+        // Fetch game details from IGDB API using Netlify function with CORS proxy fallback
+        async function fetchFromIGDBAPI(gameTitle) {
+            try {
+                // First, try to use Netlify function
+                const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? 'http://localhost:8888'  // Netlify Dev local server
+                    : window.location.origin;  // Production URL
+                
+                const response = await fetch(`${baseUrl}/api/igdb`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ gameTitle }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (!data.error) {
+                        console.log('IGDB found game via Netlify function:', data.title, 'Image:', data.imageUrl);
+                        
+                        return {
+                            title: data.title,
+                            imageUrl: data.imageUrl,
+                            nsuid: data.nsuid,
+                            url: data.url
+                        };
+                    }
+                }
+                
+                // If Netlify function fails, fallback to CORS proxy (for GitHub Pages)
+                console.log('Netlify function not available, trying CORS proxy fallback...');
+                return await fetchFromIGDBAPICors(gameTitle);
+                
+            } catch (error) {
+                console.log('Netlify function failed, trying CORS proxy fallback...', error);
+                return await fetchFromIGDBAPICors(gameTitle);
+            }
+        }
+
+        // Fallback function using CORS proxy for GitHub Pages deployment
+        async function fetchFromIGDBAPICors(gameTitle) {
+            try {
+                const config = {
+                    clientId: '8yfuwtkgx1bg2tu5lrf8inria6dl1f',
+                    // The client secret will be moved to GitHub Secrets and injected during build
+                    clientSecret: window.IGDB_CLIENT_SECRET
+                };
+                
+                // Step 1: Get OAuth token from Twitch using CORS proxy
+                const tokenResponse = await fetch('https://corsproxy.io/?https://id.twitch.tv/oauth2/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `client_id=${config.clientId}&client_secret=${config.clientSecret}&grant_type=client_credentials`
+                });
+
+                if (!tokenResponse.ok) {
+                    console.log('Failed to get Twitch token via CORS proxy');
+                    return null;
+                }
+                
+                const tokenData = await tokenResponse.json();
+                const accessToken = tokenData.access_token;
+
+                if (!accessToken) {
+                    console.log('No access token received via CORS proxy');
+                    return null;
+                }
+
+                // Step 2: Search for the game on IGDB using CORS proxy
+                const searchQuery = `search "${gameTitle}"; fields name, cover.url, platforms.name, url; where platforms.name ~ "Nintendo Switch"; limit 1;`;
+                
+                const gameResponse = await fetch('https://corsproxy.io/?https://api.igdb.com/v4/games', {
+                    method: 'POST',
+                    headers: {
+                        'Client-ID': clientId,
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'text/plain'
+                    },
+                    body: searchQuery
+                });
+
+                if (!gameResponse.ok) {
+                    console.log('IGDB game search failed via CORS proxy');
+                    return null;
+                }
+                
+                const games = await gameResponse.json();
+                
+                if (!games || games.length === 0) {
+                    console.log('No games found on IGDB via CORS proxy for:', gameTitle);
+                    return null;
+                }
+                
+                const game = games[0];
+                
+                // Step 3: Format cover image URL to get higher resolution
+                let imageUrl = null;
+                if (game.cover && game.cover.url) {
+                    imageUrl = game.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://');
+                }
+
+                console.log('IGDB found game via CORS proxy:', game.name, 'Image:', imageUrl);
+                
+                return {
+                    title: game.name,
+                    imageUrl: imageUrl,
+                    nsuid: null,
+                    url: game.url || null
+                };
+            } catch (error) {
+                console.log('IGDB CORS proxy error:', error);
+                return null;
+            }
+        }
+
         // Fetch game details from CheapShark API (free)
         async function fetchFromCheapSharkAPI(gameTitle) {
             try {
@@ -364,13 +484,8 @@
 
         // Fetch game details from RAWG API with API key
         async function fetchFromRawgAPI(gameTitle) {
-            // const apiKey = "...";
-            // Import RAWG_API_KEY from .env file (Vite, Parcel, or similar bundlers)
-            // const apiKey = import.meta.env.VITE_RAWG_API_KEY;
-            // very simple and mostly useless obfuscation (i want to keep this all clientside)
-            const apiKeyPart1 = "641865843baa4";
-            const apiKeyPart2 = "add831986daf8119131";
-            const apiKey = apiKeyPart1 + apiKeyPart2;
+            // Configuration - API key should be moved to environment variables for production
+            const apiKey = window.RAWG_API_KEY;
 
             try {
                 const url = `https://api.rawg.io/api/games?key=${apiKey}&search=${encodeURIComponent(gameTitle)}&page_size=1&platforms=7`;
@@ -405,7 +520,7 @@
                                 });
                             }
                             observer.unobserve(img);
-                        }, 500);
+                        }, 200);
                         timers.set(img, timerId);
                     } else {
                         // Cancel delay if scrolled out of view too soon

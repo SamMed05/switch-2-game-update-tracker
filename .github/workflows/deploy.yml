@@ -1,0 +1,81 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies (if any)
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+          fi
+
+      - name: Inject API keys into HTML
+        env:
+          IGDB_CLIENT_SECRET: ${{ secrets.IGDB_CLIENT_SECRET }}
+          RAWG_API_KEY: ${{ secrets.RAWG_API_KEY }}
+        run: |
+          # Create a script to inject environment variables
+          cat > inject-env.js << 'EOF'
+          const fs = require('fs');
+          
+          let html = fs.readFileSync('index.html', 'utf8');
+          
+          // Inject IGDB client secret
+          if (process.env.IGDB_CLIENT_SECRET) {
+            html = html.replace(
+              'window.IGDB_CLIENT_SECRET || \'dxa04bd7nlq5k2p5ihkd7bw8wzb5f5\'',
+              `'${process.env.IGDB_CLIENT_SECRET}'`
+            );
+          }
+          
+          // Inject RAWG API key
+          if (process.env.RAWG_API_KEY) {
+            html = html.replace(
+              'window.RAWG_API_KEY || "641865843baa4add831986daf8119131"',
+              `"${process.env.RAWG_API_KEY}"`
+            );
+          }
+          
+          fs.writeFileSync('index.html', html);
+          console.log('API keys injected successfully');
+          EOF
+          
+          node inject-env.js
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

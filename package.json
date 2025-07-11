@@ -1,0 +1,17 @@
+{
+  "name": "switch-2-game-update-tracker",
+  "version": "1.0.0",
+  "description": "Community-driven database tracking Nintendo Switch 2 game updates",
+  "main": "index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build step needed for static site'",
+    "start": "netlify dev"
+  },
+  "keywords": ["nintendo", "switch-2", "games", "updates"],
+  "author": "SamMed05",
+  "license": "MIT",
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
