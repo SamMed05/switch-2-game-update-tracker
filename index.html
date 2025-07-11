@@ -363,21 +363,29 @@
         // Fetch game details from IGDB API using Netlify function
         async function fetchFromIGDBAPI(gameTitle) {
             try {
-                // Check if we're on Netlify (has function support)
-                const isNetlify = window.location.hostname.includes('netlify') || 
-                                 window.location.hostname === 'localhost' || 
-                                 window.location.hostname === '127.0.0.1';
-                
-                if (!isNetlify) {
-                    // On GitHub Pages, skip IGDB since we don't have serverless functions
-                    console.log('GitHub Pages detected, skipping IGDB (no serverless functions available)');
+                // Determine environment
+                const host = window.location.hostname;
+                const isLocal = host === 'localhost' || host === '127.0.0.1';
+                const isNetlifyDev = host.includes('localhost:8888');
+                const isNetlifyProd = host.includes('netlify.app');
+                const isGHPages = host.includes('github.io');
+
+                // On GitHub Pages, route through the public Netlify functions endpoint
+                if (!(isLocal || isNetlifyDev || isNetlifyProd || isGHPages)) {
+                    console.log('Non-supported host for IGDB:', host);
                     return null;
                 }
-                
-                const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                    ? 'http://localhost:8888'  // Netlify Dev local server
-                    : window.location.origin;  // Production URL
-                
+
+                // Select base URL for functions
+                let baseUrl;
+                if (isLocal || isNetlifyDev) {
+                    baseUrl = 'http://localhost:8888'; // Netlify Dev
+                } else if (isNetlifyProd) {
+                    baseUrl = window.location.origin; // Live Netlify site
+                } else if (isGHPages) {
+                    baseUrl = 'https://switch-2-game-update-tracker.netlify.app'; // Public Netlify site for GH Pages fallback
+                }
+
                 const response = await fetch(`${baseUrl}/.netlify/functions/igdb`, {
                     method: 'POST',
                     headers: {
@@ -412,7 +420,7 @@
         // Fetch game details from RAWG API (free, good for indie games)
         async function fetchFromRawgAPI(gameTitle) {
             try {
-                const response = await fetch(`https://api.rawg.io/api/games?search=${encodeURIComponent(gameTitle)}&page_size=1&platforms=7`); // platform 7 = Nintendo Switch
+                const response = await fetch(`https://api.rawg.io/api/games?search=${encodeURIComponent(gameTitle)}&page_size=1&platforms=7&key=${window.RAWG_API_KEY}`); // platform 7 = Nintendo Switch
                 if (!response.ok) return null;
                 const data = await response.json();
                 if (!data.results || data.results.length === 0) return null;
