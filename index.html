@@ -142,18 +142,18 @@
         </header>
 
         <!-- Controls -->
-        <div id="controls" class="mb-8 flex flex-col gap-4 sticky top-4 z-30 px-4 py-2 transition-transform duration-300 ease-in-out">
+        <div id="controls" class="mb-8 flex flex-col gap-6 sticky top-4 z-30 px-4 py-2 transition-transform duration-300 ease-in-out">
             <div class="flex flex-col sm:flex-row gap-4 items-center">
                 <div class="relative flex-grow w-full">
                     <input 
                         type="search" 
                         id="search-input" 
                         placeholder="Search for a game..." 
-                        class="w-full bg-transparent border-2 border-indigo-500 focus:border-purple-500 rounded-2xl py-6 pl-16 pr-5 text-white text-2xl placeholder-gray-200/30 font-bold shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-400/30 transition"
-                        style="background: linear-gradient(270deg, #5153c57e, #77148080, #4446a771); background-size: 400% 400%; animation: gradientMove 10s ease infinite;"
+                        class="w-full bg-transparent backdrop-blur border-2 border-indigo-500 focus:border-purple-500 rounded-2xl py-4 sm:py-6 pl-12 sm:pl-16 pr-4 sm:pr-5 text-white text-lg sm:text-2xl placeholder-gray-200/30 font-bold shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-400/30 transition"
+                        style="background: linear-gradient(270deg, #41439ea6, #540e5a96, #33347ea8); background-size: 400% 400%; animation: gradientMove 10s ease infinite;"
                     >
-                    <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                        <i data-lucide="search" class="text-white drop-shadow-lg w-8 h-8"></i>
+                    <div class="absolute inset-y-0 left-0 pl-3 sm:pl-5 flex items-center pointer-events-none">
+                        <i data-lucide="search" class="text-white drop-shadow-lg w-6 h-6 sm:w-8 sm:h-8"></i>
                     </div>
                     <style>
                         @keyframes gradientMove {
@@ -177,37 +177,46 @@
                 </div> -->
             </div>
             
+            <!-- Mobile Filters Toggle -->
+            <div class="md:hidden flex justify-center">
+                <button id="mobile-filters-toggle" class="flex items-center justify-center gap-2 bg-gray-800/80 backdrop-blur border border-gray-700 rounded-lg px-4 py-2 text-white font-medium transition hover:bg-gray-700/80">
+                    <i data-lucide="filter" class="w-4 h-4"></i>
+                    <span>Filters</span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 transition-transform" id="filters-chevron"></i>
+                </button>
+            </div>
+            
             <!-- Filters -->
-            <div class="flex flex-wrap gap-4 justify-center">
-                <div class="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 hover:border-gray-600 transition">
+            <div id="filters-container" class="flex flex-wrap gap-3 justify-center items-center hidden md:flex">
+                <div class="flex items-center gap-2 bg-gray-800/80 backdrop-blur border border-gray-700 rounded-lg px-3 py-2 hover:border-gray-600 transition">
                     <input type="checkbox" id="filter-has-update" class="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2">
                     <label for="filter-has-update" class="text-sm font-medium text-gray-200 cursor-pointer flex items-center gap-1">
                         <span class="w-2 h-2 bg-green-600 rounded-full"></span>
                         Has Update
                     </label>
                 </div>
-                <div class="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 hover:border-gray-600 transition">
+                <div class="flex items-center gap-2 bg-gray-800/80 backdrop-blur border border-gray-700 rounded-lg px-3 py-2 hover:border-gray-600 transition">
                     <input type="checkbox" id="filter-no-update" class="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500 focus:ring-2">
                     <label for="filter-no-update" class="text-sm font-medium text-gray-200 cursor-pointer flex items-center gap-1">
                         <span class="w-2 h-2 bg-red-600 rounded-full"></span>
                         No Update
                     </label>
                 </div>
-                <div class="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 hover:border-gray-600 transition">
+                <div class="flex items-center gap-2 bg-gray-800/80 backdrop-blur border border-gray-700 rounded-lg px-3 py-2 hover:border-gray-600 transition">
                     <input type="checkbox" id="filter-switch2-edition" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2">
                     <label for="filter-switch2-edition" class="text-sm font-medium text-gray-200 cursor-pointer flex items-center gap-1">
                         <span class="w-2 h-2 bg-blue-600 rounded-full"></span>
                         Switch 2 Edition
                     </label>
                 </div>
-                <div class="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 hover:border-gray-600 transition">
+                <div class="flex items-center gap-2 bg-gray-800/80 backdrop-blur border border-gray-700 rounded-lg px-3 py-2 hover:border-gray-600 transition">
                     <input type="checkbox" id="filter-unknown" class="w-4 h-4 text-gray-600 bg-gray-700 border-gray-600 rounded focus:ring-gray-500 focus:ring-2">
                     <label for="filter-unknown" class="text-sm font-medium text-gray-200 cursor-pointer flex items-center gap-1">
                         <span class="w-2 h-2 bg-gray-600 rounded-full"></span>
                         Unknown
                     </label>
                 </div>
-                <button id="clear-filters" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg transition text-sm">
+                <button id="clear-filters" class="flex items-center gap-2 bg-indigo-600/80 backdrop-blur hover:bg-indigo-700/80 text-white font-medium px-3 py-2 rounded-lg transition text-sm">
                     <i data-lucide="x" class="w-4 h-4"></i>
                     Clear Filters
                 </button>
@@ -777,6 +786,18 @@
         filterSwitch2Edition.addEventListener('change', handleSearch);
         filterUnknown.addEventListener('change', handleSearch);
         clearFiltersBtn.addEventListener('click', clearFilters);
+
+        // Mobile filters toggle
+        const mobileFiltersToggle = document.getElementById('mobile-filters-toggle');
+        const filtersContainer = document.getElementById('filters-container');
+        const filtersChevron = document.getElementById('filters-chevron');
+        
+        if (mobileFiltersToggle && filtersContainer && filtersChevron) {
+            mobileFiltersToggle.addEventListener('click', () => {
+                filtersContainer.classList.toggle('hidden');
+                filtersChevron.classList.toggle('rotate-180');
+            });
+        }
 
         // Scroll listener to shrink and move the controls on scroll
         const controls = document.getElementById('controls');
