@@ -18,12 +18,13 @@ Here's how the website looks:
 
 ## Technologies Used
 
-- **Frontend**: HTML, CSS, JavaScript
-- **Styling**: Tailwind CSS
-- **Icons**: Lucide Icons
-- **Fonts**: Google Fonts (Inter)
-- **Data Source**: Google Sheets API
-- **Game Images**: RAWG API, CheapShark API
+- **Frontend**: HTML, CSS, JavaScript  
+- **Styling**: Tailwind CSS  
+- **Icons**: Lucide Icons  
+- **Fonts**: Google Fonts (Inter)  
+- **Data Source**: Google Sheets API  
+- **Game Images**: IGDB API, then RAWG and CheapShark APIs as fallback image sources  
+- **Serverless Functions**: Netlify Functions
 
 ## How to Run
 
@@ -93,8 +94,7 @@ Please ~~use the feedback form on the website or~~ create an issue on GitHub wit
 
 - Game images may take time to load on slower connections
 - Some games might not have available images from the APIs
-- Contribution and feedback forms are demo-only for now (no backend storage, all client side)
-- The RAWG API key is not obscured in the client; please use responsibly (I don't care if you use that key, but you will make the website experience worse for everyone for no reason, so just use you API key for things outside this website)
+- Contribution and feedback forms are demo-only and therefore hidden for now (no backend storage, all client side)
 - There is a monthly RAWG API limit of 20,000 images fetched
 
 ## 🚧 Future Enhancements 🚧
@@ -112,11 +112,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE.txt) 
 ## Acknowledgments
 
 - Nintendo for creating the Switch 2 console, of course :)
-- [RAWG](https://rawg.io/) for game data and images
-- [CheapShark](https://www.cheapshark.com/) for additional game iamges for free
+- IGDB, RAWG and CheapShark APIs for providing game images for free
 - [Tailwind CSS](https://tailwindcss.com/) for styling
 - [Lucide](https://lucide.dev/) for icons
-- The gaming community for data contributions
+- The gaming community for data contributions to the spreadsheet
 
 > [!NOTE]
-> This is a community project and is not officially affiliated with Nintendo. Game information is sourced from public APIs and community contributions.
+> This is a community project and is not officially affiliated with Nintendo. Game information is sourced from public APIs, official developer update notes and community contributions.
