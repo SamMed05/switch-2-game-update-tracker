@@ -740,6 +740,11 @@
                     const resolutionData = values[resolutionIdx]?.replace(/"/g, '').trim() || '';
                     const loadingData = values[loadingIdx]?.replace(/"/g, '').trim() || '';
                     
+                    // Extract Notes column (column K) and find a URL for Source link
+                    const notesData = values[10]?.replace(/"/g, '').trim() || '';
+                    const sourceMatch = notesData.match(/https?:\/\/[^(\s,;"')]+/);
+                    const switch2Source = sourceMatch ? sourceMatch[0] : '';
+                    
                     // Calculate row number for Google Sheets link (accounting for header rows and 1-based indexing)
                     const actualRowNumber = i + 4; // Add 4 because we start from A4 in the range, plus 1-based indexing
                     const patchCellReference = `D${actualRowNumber}`; // Column D for Patch Type
@@ -769,7 +774,7 @@
                     processedGames.push({
                         title,
                         switch2_status: status,
-                        switch2_source: '',
+                        switch2_source: switch2Source,
                         imageUrl: `https://placehold.co/600x400/1f2937/ffffff?text=${encodeURIComponent(title)}`,
                         nsuid: null,
                         patchType,
