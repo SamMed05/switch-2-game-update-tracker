@@ -16,17 +16,37 @@ Here's how the website looks:
 
 ![Switch 2 Game Update Tracker](screenshot.png)
 
-## Technologies Used
+## Technologies used
 
 - **Frontend**: HTML, CSS, JavaScript  
 - **Styling**: Tailwind CSS  
 - **Icons**: Lucide Icons  
 - **Fonts**: Google Fonts (Inter)  
-- **Data Source**: Google Sheets API  
+- **Data Source**: CSV export of a public Google Sheet
 - **Game Images**: IGDB API, then RAWG and CheapShark APIs as fallback image sources  
 - **Serverless Functions**: Netlify Functions
 
-## How to Run
+## How data is fetched
+
+This application pulls data directly from the community-driven Google Sheet by exporting it as CSV (no API key or OAuth required):
+
+1. Build the export URL using your sheet ID, tab (gid), and cell range:
+
+   ```js
+   const CSV_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/export?format=csv&gid=0&range=A4:M`;
+   ```
+
+2. Fetch the CSV text:
+
+   ```js
+   const response = await fetch(CSV_URL);
+   const csvText = await response.text();
+   ```
+
+3. Split into lines and parse each row in JavaScript, handling quoted fields and commas.
+4. Extract columns (title, patch type, FPS, resolution, loading) and build the `allGames` array for rendering.
+
+## How to run
 
 1. Clone the repo and enter its folder:
 
@@ -60,7 +80,7 @@ Here's how the website looks:
 
 Any contribution is highly appreciated! Here are ways you can help:
 
-### Reporting Game Updates
+### Reporting game updates
 
 1. Use the "Contribute Update" button on the website
 2. Fill out the form with:
@@ -72,7 +92,7 @@ Any contribution is highly appreciated! Here are ways you can help:
 > [!WARNING]
 > The "Report" feature does not work, yet. Please contribute directly to the Google Sheet for now.
 
-### Code Contributions
+### Code contributions
 
 1. Fork the repository
 2. Clone your fork to your local machine (`git clone https://github.com/<your-username>/<repo-name>.git`)
@@ -81,7 +101,7 @@ Any contribution is highly appreciated! Here are ways you can help:
 5. Push to the branch (`git push origin feature/new-feature`)
 6. Open a Pull Request
 
-### Bug Reports
+### Bug reports
 
 Please ~~use the feedback form on the website or~~ create an issue on GitHub with:
 
@@ -90,14 +110,14 @@ Please ~~use the feedback form on the website or~~ create an issue on GitHub wit
 - Expected vs actual behavior
 - Browser/device information
 
-## Known Issues
+## Known issues
 
 - Game images may take time to load on slower connections
 - Some games might not have available images from the APIs
 - Contribution and feedback forms are demo-only and therefore hidden for now (no backend storage, all client side)
 - There is a monthly RAWG API limit of 20,000 images fetched
 
-## 🚧 Future Enhancements 🚧
+## 🚧 Future enhancements 🚧
 
 - [ ] Backend integration for storing contributions (or with Google Sheet?)
 - [ ] Advanced sorting options

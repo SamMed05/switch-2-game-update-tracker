@@ -60,8 +60,11 @@
     <div id="app-container" class="min-h-screen flex flex-col container mx-auto p-4 sm:p-6 lg:p-8">
         
         <!-- Header -->
-        <header class="text-center mb-12">
-           <div class="flex items-center justify-center gap-3 mb-4">
+        <header class="text-center mb-5">
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <img src="switch-2-update-logo.png" alt="Switch 2 Logo"
+                     class="rounded-full border border-gray-700 bg-gray-800 object-cover"
+                     style="width:3.25rem;height:3.25rem;box-shadow: 0 2px 8px 0 #0002;" />
                 <h1 class="text-5xl sm:text-5xl font-bold text-white bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent m-0">
                     Switch 2 Game Update Tracker
                 </h1>
@@ -126,7 +129,7 @@
                 </div>
             </div>
             <!-- Call to Action -->
-            <div class="bg-gradient-to-r from-indigo-600/20 to-purple-600/20 rounded-lg p-6 border border-indigo-500/30">
+            <div class="bg-gradient-to-r from-indigo-600/20 to-purple-600/20 rounded-lg p-6 border border-indigo-500/30 mb-6">
                 <div class="flex items-center justify-center gap-2 mb-2">
                     <i data-lucide="heart" class="text-red-400 w-5 h-5"></i>
                     <span class="text-white font-semibold">Community Powered</span>
@@ -138,6 +141,53 @@
                            class="text-indigo-400 hover:text-indigo-300 underline">
                         Google Sheet</a>!
                 </p>
+            </div>
+
+            <!-- Status Legend -->
+            <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700 mb-6 max-w-xl mx-auto">
+                <h3 class="text-white font-semibold mb-4 text-center">Update Status Legend</h3>
+                
+                <!-- Update Types -->
+                <div class="mb-4">
+                    <h4 class="text-sm font-medium text-gray-300 mb-2 text-center">Update Types:</h4>
+                    <div class="flex flex-wrap gap-2 text-xs justify-center">
+                        <span class="flex items-center gap-1">
+                            <span class="w-3 h-3 bg-green-600 rounded-full"></span>
+                            <span class="text-gray-200">Free Update</span>
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="w-3 h-3 bg-blue-600 rounded-full"></span>
+                            <span class="text-gray-200">Switch 2 Edition</span>
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="w-3 h-3 bg-red-600 rounded-full"></span>
+                            <span class="text-gray-200">No Update</span>
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="w-3 h-3 bg-gray-600 rounded-full"></span>
+                            <span class="text-gray-200">Unknown</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Performance Indicators -->
+                <div>
+                    <h4 class="text-sm font-medium text-gray-300 mb-2 text-center">Performance Improvements (Docked Mode):</h4>
+                    <div class="flex flex-wrap gap-2 text-xs justify-center">
+                        <span class="flex items-center gap-1">
+                            <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                            <span class="text-gray-200">Improved</span>
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="w-3 h-3 bg-yellow-500 rounded-full"></span>
+                            <span class="text-gray-200">Stable/Minor/None</span>
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+                            <span class="text-gray-200">Worse</span>
+                        </span>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -188,6 +238,7 @@
             
             <!-- Filters -->
             <div id="filters-container" class="flex flex-wrap gap-3 justify-center items-center hidden md:flex">
+                <!-- Update Status Filters -->
                 <div class="flex items-center gap-2 bg-gray-800/80 backdrop-blur border border-gray-700 rounded-lg px-3 py-2 hover:border-gray-600 transition">
                     <input type="checkbox" id="filter-has-update" class="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2">
                     <label for="filter-has-update" class="text-sm font-medium text-gray-200 cursor-pointer flex items-center gap-1">
@@ -216,6 +267,33 @@
                         Unknown
                     </label>
                 </div>
+                
+                <!-- Separator -->
+                <div class="w-px h-6 bg-gray-600"></div>
+                
+                <!-- Performance Filters -->
+                <div class="flex items-center gap-2 bg-gray-800/80 backdrop-blur border border-gray-700 rounded-lg px-3 py-2 hover:border-gray-600 transition">
+                    <input type="checkbox" id="filter-fps-improved" class="w-4 h-4 text-green-500 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2">
+                    <label for="filter-fps-improved" class="text-sm font-medium text-gray-200 cursor-pointer flex items-center gap-1">
+                        <i data-lucide="zap" class="w-3 h-3 text-green-500"></i>
+                        FPS Improved
+                    </label>
+                </div>
+                <div class="flex items-center gap-2 bg-gray-800/80 backdrop-blur border border-gray-700 rounded-lg px-3 py-2 hover:border-gray-600 transition">
+                    <input type="checkbox" id="filter-resolution-improved" class="w-4 h-4 text-green-500 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2">
+                    <label for="filter-resolution-improved" class="text-sm font-medium text-gray-200 cursor-pointer flex items-center gap-1">
+                        <i data-lucide="monitor" class="w-3 h-3 text-green-500"></i>
+                        Resolution Improved
+                    </label>
+                </div>
+                <div class="flex items-center gap-2 bg-gray-800/80 backdrop-blur border border-gray-700 rounded-lg px-3 py-2 hover:border-gray-600 transition">
+                    <input type="checkbox" id="filter-loading-improved" class="w-4 h-4 text-green-500 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2">
+                    <label for="filter-loading-improved" class="text-sm font-medium text-gray-200 cursor-pointer flex items-center gap-1">
+                        <i data-lucide="clock" class="w-3 h-3 text-green-500"></i>
+                        Loading Improved
+                    </label>
+                </div>
+                
                 <button id="clear-filters" class="flex items-center gap-2 bg-indigo-600/80 backdrop-blur hover:bg-indigo-700/80 text-white font-medium px-3 py-2 rounded-lg transition text-sm">
                     <i data-lucide="x" class="w-4 h-4"></i>
                     Clear Filters
@@ -319,6 +397,9 @@
         const filterNoUpdate = document.getElementById('filter-no-update');
         const filterSwitch2Edition = document.getElementById('filter-switch2-edition');
         const filterUnknown = document.getElementById('filter-unknown');
+        const filterFpsImproved = document.getElementById('filter-fps-improved');
+        const filterResolutionImproved = document.getElementById('filter-resolution-improved');
+        const filterLoadingImproved = document.getElementById('filter-loading-improved');
         const clearFiltersBtn = document.getElementById('clear-filters');
         
         const contributionModal = document.getElementById('contribution-modal');
@@ -335,13 +416,87 @@
 
         // --- HELPER FUNCTIONS ---
         
+        // Analyze performance improvement status based on text content
+        function analyzePerformanceStatus(text) {
+            if (!text || text.trim() === '' || text.toLowerCase() === 'n/a') return 'none';
+            const lowerText = text.toLowerCase().trim();
+            
+            console.log('Analyzing performance text:', text, '->', lowerText);
+            
+            // Define keyword groups - more specific patterns first
+            const noneTerms = [
+                'unchanged / not noticeable', 'unchanged/not noticeable', 'unchanged', 'not noticeable', 
+                'no change', 'same', 'no changes', 'no improvement', 'unnoticeable', 'stable', 'unchanged / not noticeable'
+            ];
+            const worseTerms = ['worse', 'lower', 'reduced', 'decreased', 'poor', 'bad', 'downgrade', 'slowed'];
+            const improvementTerms = [
+                'improved', 'better', 'increased', 'enhanced', 'boosted', 'higher', 'smoother',
+                'more consistent', 'upgrade', 'capped 30fps', 'capped 60fps', 'increased consistency',
+                'increased by publisher', 'increased with dynamic resolution scaling', 'uncapped'
+            ];
+            
+            // Check for exact matches first (most specific)
+            if (noneTerms.some(term => lowerText === term || lowerText.includes(term))) {
+                console.log('  -> Matched "none" terms');
+                return 'none';
+            }
+            if (worseTerms.some(term => lowerText.includes(term))) {
+                console.log('  -> Matched "worse" terms');
+                return 'worse';
+            }
+            if (improvementTerms.some(term => lowerText.includes(term))) {
+                console.log('  -> Matched "improved" terms');
+                return 'improved';
+            }
+            
+            console.log('  -> Defaulting to "none"');
+            return 'none';
+        }
+        
+        // Get performance indicator HTML
+        function getPerformanceIndicator(status, type) {
+            const iconMap = {
+                'fps': 'zap',
+                'resolution': 'monitor',
+                'loading': 'clock'
+            };
+            const labelMap = {
+                'fps': 'FPS',
+                'resolution': 'RES',
+                'loading': 'LOAD'
+            };
+            
+            const icon = iconMap[type] || 'zap';
+            const label = labelMap[type] || type.toUpperCase();
+            
+            switch (status) {
+                case 'improved':
+                    return `<span class="flex items-center gap-1 px-2 py-1 bg-green-600/20 border border-green-500/30 rounded text-xs text-green-400" title="${type.toUpperCase()} Improved">
+                        <i data-lucide="${icon}" class="w-3 h-3"></i>
+                        <span>${label}</span>
+                    </span>`;
+                case 'none':
+                    return `<span class="flex items-center gap-1 px-2 py-1 bg-yellow-600/20 border border-yellow-500/30 rounded text-xs text-yellow-400" title="${type.toUpperCase()} Stable/Minor/None">
+                        <i data-lucide="${icon}" class="w-3 h-3"></i>
+                        <span>${label}</span>
+                    </span>`;
+                case 'worse':
+                    return `<span class="flex items-center gap-1 px-2 py-1 bg-red-600/20 border border-red-500/30 rounded text-xs text-red-400" title="${type.toUpperCase()} Worse">
+                        <i data-lucide="${icon}" class="w-3 h-3"></i>
+                        <span>${label}</span>
+                    </span>`;
+                default:
+                    return '';
+            }
+        }
+        
         // Generate placeholder image for games
         function generateGamePlaceholder(gameTitle) {
             const encodedTitle = encodeURIComponent(gameTitle);
             return `https://placehold.co/300x400/2D3748/FFFFFF/png?text=${encodedTitle}`;
         }
         
-        // Fetch game image and details from multiple sources
+        // Fetch Nintendo game details from IGDB, RAWG, and CheapShark APIs
         async function fetchNintendoGameDetails(gameTitle) {
             if (gameDatabase.has(gameTitle)) return gameDatabase.get(gameTitle);
             
@@ -525,65 +680,120 @@
             loader.style.display = 'block';
             loader.querySelector('p').textContent = 'Loading games from Google Sheet...';
             try {
-                // Fetch data via Google Visualization API (JSON) to get proper header and data rows
-                const JSON_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}&range=${SHEET_RANGE}&tqx=out:json`;
-                const response = await fetch(JSON_URL);
+                // Use CSV export for cleaner data parsing
+                const CSV_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/export?format=csv&gid=0&range=A4:M`;
+                const response = await fetch(CSV_URL);
                 if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
-                const text = await response.text();
-                // Extract JSON payload
-                const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\((.*)\)/s);
-                if (!jsonMatch) throw new Error('Invalid JSON response from Google Sheets');
-                const table = JSON.parse(jsonMatch[1]).table;
-                // Keep full row list for lookup
-                const tableRows = table.rows;
-                const cols = table.cols.map(c => c.label || '');
-                // determine column indexes
-                const patchIdx = cols.findIndex(l => /patch/i.test(l));
-                const sourceIdx = cols.findIndex(l => /source|link/i.test(l));
-                // starting row number from range
-                const startRow = parseInt((SHEET_RANGE.match(/\d+/) || [1])[0], 10);
-                // use all rows as data rows
-                const rawRows = tableRows;
+                const csvText = await response.text();
+                
+                // Parse CSV data
+                const lines = csvText.split(/\r?\n/).filter(line => line.trim());
+                if (lines.length < 2) throw new Error('Not enough data in spreadsheet');
+                
+                // Get headers from first line
+                const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+                console.log('CSV Headers:', headers);
+                
+                // Find column indexes
+                const gameIdx = 0; // Game is first column
+                const publisherIdx = 1; // Publisher is second column
+                const versionIdx = 2; // Version is third column
+                const patchIdx = 3; // Patch Type is fourth column
+                const fpsIdx = 4; // Framerate (Docked) is fifth column
+                const resolutionIdx = 5; // Resolution (Docked) is sixth column
+                const loadingIdx = 6; // Loading times (Docked) is seventh column
+                
+                console.log('Column mapping:', { gameIdx, publisherIdx, versionIdx, patchIdx, fpsIdx, resolutionIdx, loadingIdx });
+                
                 const processedGames = [];
-                for (let i = 0; i < rawRows.length; i++) {
-                    const cells = rawRows[i].c || [];
-                    const title = cells[0] && cells[0].v ? String(cells[0].v).trim() : '';
-                    if (!title || title === 'N/A') continue;
-                    const patchType = patchIdx >= 0 && cells[patchIdx] && cells[patchIdx].v ? String(cells[patchIdx].v) : '';
+                
+                // Process each data row (skip header)
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i];
+                    if (!line.trim()) continue;
+                    
+                    // Parse CSV line (handle quoted fields)
+                    const values = [];
+                    let current = '';
+                    let inQuotes = false;
+                    
+                    for (let j = 0; j < line.length; j++) {
+                        const char = line[j];
+                        if (char === '"') {
+                            inQuotes = !inQuotes;
+                        } else if (char === ',' && !inQuotes) {
+                            values.push(current.trim());
+                            current = '';
+                        } else {
+                            current += char;
+                        }
+                    }
+                    values.push(current.trim()); // Don't forget the last value
+                    
+                    if (values.length < 7) continue; // Need at least 7 columns
+                    
+                    const title = values[gameIdx]?.replace(/"/g, '').trim();
+                    if (!title || title === 'N/A' || title === 'Game') continue; // Skip header and invalid rows
+                    
+                    const patchType = values[patchIdx]?.replace(/"/g, '').trim() || '';
+                    const fpsData = values[fpsIdx]?.replace(/"/g, '').trim() || '';
+                    const resolutionData = values[resolutionIdx]?.replace(/"/g, '').trim() || '';
+                    const loadingData = values[loadingIdx]?.replace(/"/g, '').trim() || '';
+                    
+                    // Calculate row number for Google Sheets link (accounting for header rows and 1-based indexing)
+                    const actualRowNumber = i + 4; // Add 4 because we start from A4 in the range, plus 1-based indexing
+                    const patchCellReference = `D${actualRowNumber}`; // Column D for Patch Type
+                    const patchCellUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/edit?gid=0&range=${patchCellReference}`;
+                    
+                    // Debug specific game
+                    if (title.toLowerCase().includes('cadence') || title.toLowerCase().includes('advance wars')) {
+                        console.log(`DEBUG ${title}:`, {
+                            fpsData: fpsData || 'EMPTY',
+                            resolutionData: resolutionData || 'EMPTY', 
+                            loadingData: loadingData || 'EMPTY',
+                            patchCellUrl,
+                            rowNumber: actualRowNumber,
+                            allValues: values
+                        });
+                    }
+                    
+                    // Analyze performance improvements
+                    const fpsStatus = analyzePerformanceStatus(fpsData);
+                    const resolutionStatus = analyzePerformanceStatus(resolutionData);
+                    const loadingStatus = analyzePerformanceStatus(loadingData);
+                    
                     const status = patchType.toLowerCase().includes('switch 2 edition') ? 'SWITCH2_EDITION'
                         : patchType.toLowerCase().includes('free update') ? 'YES'
                         : patchType.toLowerCase().includes('no update') ? 'NO' : 'UNKNOWN';
-                    // calculate actual sheet row by finding the row index for this title
-                    const tableIndex = tableRows.findIndex(r => r.c && r.c[0] && String(r.c[0].v).trim() === title);
-                    const actualRow = startRow + tableIndex + 1;
-                     // column letter helper
-                     const colLetter = idx => {
-                        let s = '';
-                        while (idx >= 0) { s = String.fromCharCode(65 + (idx % 26)) + s; idx = Math.floor(idx/26) - 1; }
-                        return s;
-                    };
-                    const patchCellUrl = patchIdx >= 0
-                        ? `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/edit?gid=0&range=${colLetter(patchIdx)}${actualRow}`
-                        : null;
+                    
                     processedGames.push({
                         title,
                         switch2_status: status,
-                        switch2_source: sourceIdx >= 0 && cells[sourceIdx] && cells[sourceIdx].v ? String(cells[sourceIdx].v) : '',
+                        switch2_source: '',
                         imageUrl: `https://placehold.co/600x400/1f2937/ffffff?text=${encodeURIComponent(title)}`,
                         nsuid: null,
                         patchType,
-                        patchCellUrl,
-                        originalRow: cells
+                        patchCellUrl, // Now includes the direct link to the Google Sheets cell
+                        fpsData,
+                        fpsStatus,
+                        resolutionData,
+                        resolutionStatus,
+                        loadingData,
+                        loadingStatus,
+                        originalRow: values
                     });
+                    
                     if (i % 50 === 0) {
-                        loader.querySelector('p').textContent = `Processing games... (${i + 1}/${rawRows.length})`;
+                        loader.querySelector('p').textContent = `Processing games... (${i}/${lines.length - 1})`;
                         await new Promise(r => setTimeout(r, 1));
                     }
                 }
+                
                 // Exclude specific titles if needed
                 const excludedTitles = [
                     "Anyone tested GameCube Switch Online update if it is improved? (input lag and others)",
                     "EGGCONSOLE",
+                    "???"
                     // Add more titles here if needed
                 ];
                 const filteredGames = processedGames.filter(game =>
@@ -669,6 +879,15 @@
                             <div class="text-xs text-gray-400 mb-3 min-h-[1.25rem]">
                                 ${game.switch2_source ? `<a href="${game.switch2_source}" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-400 underline decoration-dotted">Source</a>` : ''}
                             </div>
+                            
+                            <!-- Performance Indicators -->
+                            ${(game.fpsStatus && game.fpsData) || (game.resolutionStatus && game.resolutionData) || (game.loadingStatus && game.loadingData) ? `
+                                <div class="flex flex-wrap gap-1 mb-3">
+                                    ${game.fpsData ? getPerformanceIndicator(game.fpsStatus, 'fps') : ''}
+                                    ${game.resolutionData ? getPerformanceIndicator(game.resolutionStatus, 'resolution') : ''}
+                                    ${game.loadingData ? getPerformanceIndicator(game.loadingStatus, 'loading') : ''}
+                                </div>
+                            ` : ''}
                             <div class="flex gap-2 mt-auto">
                                 <a href="https://www.google.com/search?q=${encodeURIComponent(game.title + ' nintendo switch 2 update')}" target="_blank" rel="noopener noreferrer"
                                     class="flex-1 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-3 rounded-lg transition text-xs sm:text-sm"
@@ -716,26 +935,53 @@
             const showNoUpdate = filterNoUpdate.checked;
             const showSwitch2Edition = filterSwitch2Edition.checked;
             const showUnknown = filterUnknown.checked;
+            const showFpsImproved = filterFpsImproved.checked;
+            const showResolutionImproved = filterResolutionImproved.checked;
+            const showLoadingImproved = filterLoadingImproved.checked;
             
             // If no filters are active, show all games
-            const noFiltersActive = !showHasUpdate && !showNoUpdate && !showSwitch2Edition && !showUnknown;
+            const noFiltersActive = !showHasUpdate && !showNoUpdate && !showSwitch2Edition && !showUnknown && !showFpsImproved && !showResolutionImproved && !showLoadingImproved;
             
             const filteredGames = allGames.filter(game => {
-                // normalize both title and patchType
-                const titleMatch = normalizeText(game.title).includes(normalizedQuery);
-                const patchMatch = game.patchType
-                  ? normalizeText(game.patchType).includes(normalizedQuery)
-                  : false;
+                // Search filter: if there's a query, check title and patch type
+                if (normalizedQuery) {
+                    const titleMatch = normalizeText(game.title).includes(normalizedQuery);
+                    const patchMatch = game.patchType
+                      ? normalizeText(game.patchType).includes(normalizedQuery)
+                      : false;
+                    if (!titleMatch && !patchMatch) return false;
+                }
 
-                if (!titleMatch && !patchMatch) return false;
+                // If no filters are active, show all games (that pass search)
                 if (noFiltersActive) return true;
 
                 // Apply status filters
                 const gameStatus = game.switch2_status;
-                return (showHasUpdate && gameStatus === 'YES') ||
+                const statusMatch = (showHasUpdate && gameStatus === 'YES') ||
                        (showNoUpdate && gameStatus === 'NO') ||
                        (showSwitch2Edition && gameStatus === 'SWITCH2_EDITION') ||
                        (showUnknown && gameStatus === 'UNKNOWN');
+                
+                // Apply performance filters
+                const fpsMatch = showFpsImproved && game.fpsStatus === 'improved';
+                const resolutionMatch = showResolutionImproved && game.resolutionStatus === 'improved';
+                const loadingMatch = showLoadingImproved && game.loadingStatus === 'improved';
+                
+                // If only status filters are active, use status match
+                // If only performance filters are active, use performance match
+                // If both types are active, require at least one match from each type
+                const statusFiltersActive = showHasUpdate || showNoUpdate || showSwitch2Edition || showUnknown;
+                const performanceFiltersActive = showFpsImproved || showResolutionImproved || showLoadingImproved;
+                
+                if (statusFiltersActive && performanceFiltersActive) {
+                    return statusMatch && (fpsMatch || resolutionMatch || loadingMatch);
+                } else if (statusFiltersActive) {
+                    return statusMatch;
+                } else if (performanceFiltersActive) {
+                    return fpsMatch || resolutionMatch || loadingMatch;
+                }
+                
+                return false;
             });
             
             renderGames(filteredGames);
@@ -746,6 +992,9 @@
             filterNoUpdate.checked = false;
             filterSwitch2Edition.checked = false;
             filterUnknown.checked = false;
+            filterFpsImproved.checked = false;
+            filterResolutionImproved.checked = false;
+            filterLoadingImproved.checked = false;
             handleSearch();
         }
         
@@ -784,6 +1033,9 @@
         filterNoUpdate.addEventListener('change', handleSearch);
         filterSwitch2Edition.addEventListener('change', handleSearch);
         filterUnknown.addEventListener('change', handleSearch);
+        filterFpsImproved.addEventListener('change', handleSearch);
+        filterResolutionImproved.addEventListener('change', handleSearch);
+        filterLoadingImproved.addEventListener('change', handleSearch);
         clearFiltersBtn.addEventListener('click', clearFilters);
 
         // Mobile filters toggle
