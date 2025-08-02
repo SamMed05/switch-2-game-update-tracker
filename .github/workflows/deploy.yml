@@ -49,7 +49,7 @@ jobs:
           // Inject IGDB client secret
           if (process.env.IGDB_CLIENT_SECRET) {
             html = html.replace(
-              'window.IGDB_CLIENT_SECRET || \'dxa04bd7nlq5k2p5ihkd7bw8wzb5f5\'',
+              'window.IGDB_CLIENT_SECRET',
               `'${process.env.IGDB_CLIENT_SECRET}'`
             );
           }
@@ -57,7 +57,7 @@ jobs:
           // Inject RAWG API key
           if (process.env.RAWG_API_KEY) {
             html = html.replace(
-              'window.RAWG_API_KEY || "641865843baa4add831986daf8119131"',
+              'window.RAWG_API_KEY',
               `"${process.env.RAWG_API_KEY}"`
             );
           }
