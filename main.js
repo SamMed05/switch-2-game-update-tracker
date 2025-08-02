@@ -1,0 +1,888 @@
+// --- CONFIGURATION ---
+const GOOGLE_SHEET_ID = "1sOYZRiOuD9Cnr-e_hlzhRuxuEq5X5Ptwq4yCfwxyfFk";
+const SHEET_NAME = "Switch 2 FPS/Resolution List";
+const SHEET_RANGE = "A7:Z"; // Start from row 7 to skip messy headers
+const GOOGLE_SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(
+    SHEET_NAME
+)}&range=${SHEET_RANGE}`;
+
+// Image sources configuration (old)
+// const STEAMGRIDDB_API_URL = 'https://www.steamgriddb.com/api/v2';
+// --- GLOBAL STATE ---
+let allGames = [];
+let gameDatabase = new Map(); // Cache for game data
+// --- DOM ELEMENTS ---
+const loader = document.getElementById("loader");
+const gameList = document.getElementById("game-list");
+const searchInput = document.getElementById("search-input");
+const noResults = document.getElementById("no-results");
+
+// Filter elements
+const filterHasUpdate = document.getElementById("filter-has-update");
+const filterNoUpdate = document.getElementById("filter-no-update");
+const filterSwitch2Edition = document.getElementById("filter-switch2-edition");
+const filterUnknown = document.getElementById("filter-unknown");
+const filterFpsImproved = document.getElementById("filter-fps-improved");
+const filterResolutionImproved = document.getElementById(
+    "filter-resolution-improved"
+);
+const filterLoadingImproved = document.getElementById(
+    "filter-loading-improved"
+);
+const clearFiltersBtn = document.getElementById("clear-filters");
+
+const contributionModal = document.getElementById("contribution-modal");
+const contributionForm = document.getElementById("contribution-form");
+const openContributionModalBtn = document.getElementById(
+    "open-contribution-modal"
+);
+const closeContributionModalBtn = document.getElementById(
+    "close-contribution-modal"
+);
+const feedbackModal = document.getElementById("feedback-modal");
+const feedbackForm = document.getElementById("feedback-form");
+const openFeedbackModalBtn = document.getElementById("open-feedback-modal");
+const closeFeedbackModalBtn = document.getElementById("close-feedback-modal");
+const toast = document.getElementById("toast");
+// --- HELPER FUNCTIONS ---
+
+// Analyze performance improvement status based on text content
+function analyzePerformanceStatus(text) {
+    if (!text || text.trim() === "" || text.toLowerCase() === "n/a")
+        return "none";
+    const lowerText = text.toLowerCase().trim();
+
+    // debug logs
+    // console.log("Analyzing performance text:", text, "->", lowerText);
+
+    // Define keyword groups - more specific patterns first
+    const noneTerms = [
+        "unchanged / not noticeable",
+        "unchanged/not noticeable",
+        "unchanged",
+        "not noticeable",
+        "no change",
+        "same",
+        "no changes",
+        "no improvement",
+        "unnoticeable",
+        "stable",
+        "unchanged / not noticeable",
+    ];
+    const worseTerms = [
+        "worse",
+        "lower",
+        "reduced",
+        "decreased",
+        "poor",
+        "bad",
+        "downgrade",
+        "slowed",
+    ];
+    const improvementTerms = [
+        "improved",
+        "better",
+        "increased",
+        "enhanced",
+        "boosted",
+        "higher",
+        "smoother",
+        "more consistent",
+        "upgrade",
+        "capped 30fps",
+        "capped 60fps",
+        "increased consistency",
+        "increased by publisher",
+        "increased with dynamic resolution scaling",
+        "uncapped",
+    ];
+
+    // Check for exact matches first (most specific)
+    if (
+        noneTerms.some((term) => lowerText === term || lowerText.includes(term))
+    ) {
+        // console.log('  -> Matched "none" terms');
+        return "none";
+    }
+    if (worseTerms.some((term) => lowerText.includes(term))) {
+        // console.log('  -> Matched "worse" terms');
+        return "worse";
+    }
+    if (improvementTerms.some((term) => lowerText.includes(term))) {
+        // console.log('  -> Matched "improved" terms');
+        return "improved";
+    }
+
+    // console.log('  -> Defaulting to "none"');
+    return "none";
+}
+
+// Get performance indicator HTML
+function getPerformanceIndicator(status, type) {
+    const iconMap = {
+        fps: "zap",
+        resolution: "monitor",
+        loading: "clock",
+    };
+    const labelMap = {
+        fps: "FPS",
+        resolution: "RES",
+        loading: "LOAD",
+    };
+
+    const icon = iconMap[type] || "zap";
+    const label = labelMap[type] || type.toUpperCase();
+
+    switch (status) {
+        case "improved":
+            return `<span class="flex items-center gap-1 px-2 py-1 bg-green-600/20 border border-green-500/30 rounded text-xs text-green-400" 
+title="${type.toUpperCase()} Improved">
+                <i data-lucide="${icon}" class="w-3 h-3"></i>
+                <span>${label}</span>
+            </span>`;
+        case "none":
+            return `<span class="flex items-center gap-1 px-2 py-1 bg-yellow-600/20 border border-yellow-500/30 rounded text-xs 
+text-yellow-400" title="${type.toUpperCase()} Stable/Minor/None">
+                <i data-lucide="${icon}" class="w-3 h-3"></i>
+                <span>${label}</span>
+            </span>`;
+        case "worse":
+            return `<span class="flex items-center gap-1 px-2 py-1 bg-red-600/20 border border-red-500/30 rounded text-xs text-red-400" title="$
+{type.toUpperCase()} Worse">
+                <i data-lucide="${icon}" class="w-3 h-3"></i>
+                <span>${label}</span>
+            </span>`;
+        default:
+            return "";
+    }
+}
+
+// Generate placeholder image for games
+function generateGamePlaceholder(gameTitle) {
+    const encodedTitle = encodeURIComponent(gameTitle);
+    return `https://placehold.co/300x400/2D3748/FFFFFF/png?text=${encodedTitle}`;
+}
+
+// Fetch Nintendo game details from IGDB, RAWG, and CheapShark APIs
+async function fetchNintendoGameDetails(gameTitle) {
+    if (gameDatabase.has(gameTitle)) return gameDatabase.get(gameTitle);
+
+    // Primary: IGDB via Netlify function, then RAWG, then CheapShark as fallbacks
+    const sources = [
+        () => fetchFromIGDBAPI(gameTitle),
+        () => fetchFromRawgAPI(gameTitle),
+        () => fetchFromCheapSharkAPI(gameTitle),
+    ];
+
+    for (const source of sources) {
+        try {
+            const result = await source();
+            if (result && result.imageUrl) {
+                gameDatabase.set(gameTitle, result);
+                return result;
+            }
+        } catch {
+            /* ignore */
+        }
+    }
+
+    // Final fallback placeholder
+    const fallback = {
+        title: gameTitle,
+        imageUrl: generateGamePlaceholder(gameTitle),
+        nsuid: null,
+        url: null,
+    };
+    gameDatabase.set(gameTitle, fallback);
+    return fallback;
+}
+// Fetch game details from IGDB API using Netlify function
+async function fetchFromIGDBAPI(gameTitle) {
+    try {
+        // Determine environment
+        const host = window.location.hostname;
+        const isLocal = host === "localhost" || host === "127.0.0.1";
+        const isNetlifyDev = host.includes("localhost:8888");
+        const isNetlifyProd = host.includes("netlify.app");
+        const isGHPages = host.includes("github.io");
+        // On GitHub Pages, route through the public Netlify functions endpoint
+        if (!(isLocal || isNetlifyDev || isNetlifyProd || isGHPages)) {
+            console.log("Non-supported host for IGDB:", host);
+            return null;
+        }
+        // Select base URL for functions
+        let baseUrl;
+        if (isLocal || isNetlifyDev) {
+            baseUrl = "http://localhost:8888"; // Netlify Dev
+        } else if (isNetlifyProd) {
+            baseUrl = window.location.origin; // Live Netlify site
+        } else if (isGHPages) {
+            baseUrl = "https://switch-2-game-update-tracker.netlify.app"; // Public Netlify site for GH Pages fallback
+        }
+        const response = await fetch(`${baseUrl}/.netlify/functions/igdb`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ gameTitle }),
+        });
+        if (response.ok) {
+            const data = await response.json();
+
+            if (!data.error) {
+                console.log(
+                    "IGDB found game via Netlify function:",
+                    data.title,
+                    "Image:",
+                    data.imageUrl
+                );
+
+                return {
+                    title: data.title,
+                    imageUrl: data.imageUrl,
+                    nsuid: data.nsuid,
+                    url: data.url,
+                };
+            }
+        }
+
+        return null;
+    } catch (error) {
+        console.log("IGDB API failed:", error);
+        return null;
+    }
+}
+// Fetch game details from RAWG API (free, good for indie games)
+async function fetchFromRawgAPI(gameTitle) {
+    try {
+        const response =
+            await fetch(`https://api.rawg.io/api/games?search=${encodeURIComponent(
+                gameTitle
+            )}&page_size=1&platforms=7&key=$
+{window.RAWG_API_KEY}`); // platform 7 = Nintendo Switch
+        if (!response.ok) return null;
+        const data = await response.json();
+        if (!data.results || data.results.length === 0) return null;
+        const game = data.results[0];
+        return {
+            title: game.name,
+            imageUrl: game.background_image,
+            nsuid: null,
+            url: `https://rawg.io/games/${game.slug}`,
+        };
+    } catch {
+        return null;
+    }
+}
+// Fetch game details from CheapShark API (free)
+async function fetchFromCheapSharkAPI(gameTitle) {
+    try {
+        const response = await fetch(
+            `https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(
+                gameTitle
+            )}&limit=1`
+        );
+        if (!response.ok) return null;
+        const results = await response.json();
+        if (results.length === 0) return null;
+        const game = results[0];
+        return {
+            title: game.external,
+            imageUrl: game.thumb,
+            nsuid: null,
+            url: null,
+        };
+    } catch {
+        return null;
+    }
+}
+// Lazy load images using Intersection Observer
+function setupLazyLoading() {
+    const timers = new WeakMap();
+    const imageObserver = new IntersectionObserver(
+        (entries, observer) => {
+            entries.forEach((entry) => {
+                const img = entry.target;
+                if (entry.isIntersecting) {
+                    if (img.dataset.loaded) {
+                        observer.unobserve(img);
+                        return;
+                    }
+                    const timerId = setTimeout(() => {
+                        const gameTitle = img.dataset.gameTitle;
+                        if (gameTitle) {
+                            img.dataset.loaded = "true";
+                            fetchNintendoGameDetails(gameTitle).then((gameDetails) => {
+                                if (
+                                    gameDetails.imageUrl &&
+                                    !gameDetails.imageUrl.includes("placehold.co")
+                                ) {
+                                    img.src = gameDetails.imageUrl;
+                                }
+                            });
+                        }
+                        observer.unobserve(img);
+                    }, 200);
+                    timers.set(img, timerId);
+                } else {
+                    // Cancel delay if scrolled out of view too soon
+                    const timerId = timers.get(img);
+                    if (timerId) {
+                        clearTimeout(timerId);
+                        timers.delete(img);
+                    }
+                }
+            });
+        },
+        { threshold: 0.1 }
+    );
+    document.querySelectorAll("img[data-game-title]").forEach((img) => {
+        imageObserver.observe(img);
+    });
+}
+// Parses a CSV string into an array of objects. Handles quoted fields.
+function parseCSV(csvText) {
+    const lines = csvText.split(/\r?\n/);
+    if (lines.length < 2) return [];
+
+    // Robustly extract headers, removing quotes
+    const headers =
+        lines[0]
+            .match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
+            ?.map((h) => h.replace(/"/g, "").trim()) || [];
+    const data = [];
+    for (let i = 1; i < lines.length; i++) {
+        if (!lines[i] || lines[i].trim() === "") continue;
+
+        // This regex handles quoted fields containing commas
+        const values = lines[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+        if (!values || values.length !== headers.length) continue;
+        const obj = {};
+        for (let j = 0; j < headers.length; j++) {
+            // Remove quotes from values and trim whitespace
+            obj[headers[j]] = values[j] ? values[j].replace(/"/g, "").trim() : "";
+        }
+        data.push(obj);
+    }
+    return data;
+}
+// Fetches data from the Google Sheet and processes it
+async function fetchAndProcessGames() {
+    loader.style.display = "block";
+    loader.querySelector("p").textContent = "Loading games from Google Sheet...";
+    try {
+        // Use CSV export for cleaner data parsing
+        const CSV_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/export?format=csv&gid=0&range=A4:M`;
+        const response = await fetch(CSV_URL);
+        if (!response.ok)
+            throw new Error(`Network response was not ok: ${response.statusText}`);
+        const csvText = await response.text();
+
+        // Parse CSV data
+        const lines = csvText.split(/\r?\n/).filter((line) => line.trim());
+        if (lines.length < 2) throw new Error("Not enough data in spreadsheet");
+
+        // Get headers from first line
+        const headers = lines[0].split(",").map((h) => h.replace(/"/g, "").trim());
+        console.log("CSV Headers:", headers);
+
+        // Find column indexes
+        const gameIdx = 0; // Game is first column
+        const publisherIdx = 1; // Publisher is second column
+        const versionIdx = 2; // Version is third column
+        const patchIdx = 3; // Patch Type is fourth column
+        const fpsIdx = 4; // Framerate (Docked) is fifth column
+        const resolutionIdx = 5; // Resolution (Docked) is sixth column
+        const loadingIdx = 6; // Loading times (Docked) is seventh column
+
+        console.log("Column mapping:", {
+            gameIdx,
+            publisherIdx,
+            versionIdx,
+            patchIdx,
+            fpsIdx,
+            resolutionIdx,
+            loadingIdx,
+        });
+
+        const processedGames = [];
+
+        // Process each data row (skip header)
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i];
+            if (!line.trim()) continue;
+
+            // Parse CSV line (handle quoted fields)
+            const values = [];
+            let current = "";
+            let inQuotes = false;
+
+            for (let j = 0; j < line.length; j++) {
+                const char = line[j];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === "," && !inQuotes) {
+                    values.push(current.trim());
+                    current = "";
+                } else {
+                    current += char;
+                }
+            }
+            values.push(current.trim()); // Don't forget the last value
+
+            if (values.length < 7) continue; // Need at least 7 columns
+
+            const title = values[gameIdx]?.replace(/"/g, "").trim();
+            if (!title || title === "N/A" || title === "Game") continue; // Skip header and invalid rows
+
+            const patchType = values[patchIdx]?.replace(/"/g, "").trim() || "";
+            const fpsData = values[fpsIdx]?.replace(/"/g, "").trim() || "";
+            const resolutionData =
+                values[resolutionIdx]?.replace(/"/g, "").trim() || "";
+            const loadingData = values[loadingIdx]?.replace(/"/g, "").trim() || "";
+
+            // Extract Notes column (column K) and find a URL for Source link
+            const notesData = values[10]?.replace(/"/g, "").trim() || "";
+            const sourceMatch = notesData.match(/https?:\/\/[^(\s,;"')]+/);
+            const switch2Source = sourceMatch ? sourceMatch[0] : "";
+
+            // Calculate row number for Google Sheets link (accounting for header rows and 1-based indexing)
+            const actualRowNumber = i + 4; // Add 4 because we start from A4 in the range, plus 1-based indexing
+            const patchCellReference = `D${actualRowNumber}`; // Column D for Patch Type
+            const patchCellUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/edit?gid=0&range=${patchCellReference}`;
+
+            // Debug specific game
+            if (
+                title.toLowerCase().includes("cadence") ||
+                title.toLowerCase().includes("advance wars")
+            ) {
+                console.log(`DEBUG ${title}:`, {
+                    fpsData: fpsData || "EMPTY",
+                    resolutionData: resolutionData || "EMPTY",
+                    loadingData: loadingData || "EMPTY",
+                    patchCellUrl,
+                    rowNumber: actualRowNumber,
+                    allValues: values,
+                });
+            }
+
+            // Analyze performance improvements
+            const fpsStatus = analyzePerformanceStatus(fpsData);
+            const resolutionStatus = analyzePerformanceStatus(resolutionData);
+            const loadingStatus = analyzePerformanceStatus(loadingData);
+
+            const status = patchType.toLowerCase().includes("switch 2 edition")
+                ? "SWITCH2_EDITION"
+                : patchType.toLowerCase().includes("free update")
+                    ? "YES"
+                    : patchType.toLowerCase().includes("no update")
+                        ? "NO"
+                        : "UNKNOWN";
+
+            processedGames.push({
+                title,
+                switch2_status: status,
+                switch2_source: switch2Source,
+                imageUrl: `https://placehold.co/600x400/1f2937/ffffff?text=${encodeURIComponent(
+                    title
+                )}`,
+                nsuid: null,
+                patchType,
+                patchCellUrl, // Now includes the direct link to the Google Sheets cell
+                fpsData,
+                fpsStatus,
+                resolutionData,
+                resolutionStatus,
+                loadingData,
+                loadingStatus,
+                originalRow: values,
+            });
+
+            if (i % 50 === 0) {
+                loader.querySelector("p").textContent = `Processing games... (${i}/${lines.length - 1
+                    })`;
+                await new Promise((r) => setTimeout(r, 1));
+            }
+        }
+
+        // Exclude specific titles if needed
+        const excludedTitles = [
+            "Anyone tested GameCube Switch Online update if it is improved? (input lag and others)",
+            "EGGCONSOLE",
+            "???",
+            // Add more titles here if needed
+        ];
+        const filteredGames = processedGames.filter(
+            (game) =>
+                !excludedTitles.some((excluded) => game.title.includes(excluded))
+        );
+        allGames = filteredGames.sort((a, b) => a.title.localeCompare(b.title));
+        loader.style.display = "none";
+        handleSearch();
+    } catch (error) {
+        console.error("Error fetching from Google Sheet:", error);
+        loader.innerHTML = `<p class="text-red-500">Error loading games: ${error.message}</p>`;
+    }
+}
+
+function showToast(message, isError = false) {
+    toast.textContent = message;
+    toast.className = `fixed bottom-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ${isError ? "bg-red-600" : "bg-green-600"
+        }`;
+    toast.classList.remove("translate-y-20", "opacity-0");
+    setTimeout(() => {
+        toast.classList.add("translate-y-20", "opacity-0");
+    }, 3000);
+}
+function getStatusIndicator(status) {
+    switch (status) {
+        case "YES":
+            return `<div class="flex items-center gap-2"><span class="px-3 py-1 text-xs font-semibold text-green-100 bg-green-600 
+rounded-full">Yes</span><span class="text-sm text-gray-200">Free Update</span></div>`;
+        case "NO":
+            return `<div class="flex items-center gap-2"><span class="px-3 py-1 text-xs font-semibold text-red-100 bg-red-600 rounded-full">No</
+span><span class="text-sm text-gray-200">No Update Planned</span></div>`;
+        case "SWITCH2_EDITION":
+            return `<div class="flex items-center gap-2"><span class="px-3 py-1 text-xs font-semibold text-blue-100 bg-blue-600 
+rounded-full">S2</span><span class="text-sm text-gray-200">Switch 2 Edition</span></div>`;
+        default:
+            return `<div class="flex items-center gap-2"><span class="px-3 py-1 text-xs font-semibold text-gray-100 bg-gray-600 rounded-full">?
+</span><span class="text-sm text-gray-200">Unknown</span></div>`;
+    }
+}
+function renderGames(games) {
+    if (games.length === 0 && searchInput.value) {
+        noResults.classList.remove("hidden");
+        gameList.innerHTML = "";
+    } else {
+        noResults.classList.add("hidden");
+        gameList.innerHTML = games
+            .map(
+                (game) => `
+            <div class="bg-gray-800 rounded-2xl shadow-xl overflow-hidden flex flex-col border border-gray-700 transition-transform 
+duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/40 hover:border-indigo-500/60 hover:z-10"
+                 style="will-change: transform;">
+                <div class="relative">
+                    <img src="${game.imageUrl}" 
+                         alt="${game.title}" 
+                         data-game-title="${game.title}"
+                         class="w-full h-auto object-cover bg-gray-900" 
+                         style="max-height: 220px;"
+                         onerror="this.onerror=null;this.src='https://placehold.co/600x400/111827/4f46e5?text=${encodeURIComponent(
+                    game.title
+                )}
+';">
+                    <div class="absolute top-0 right-0 p-2 rounded-bl-lg backdrop-blur-sm"
+                        style="
+                           background-color: ${game.switch2_status === "YES"
+                        ? "rgba(5, 46, 22, 0.85)" // dark green
+                        : game.switch2_status === "NO"
+                            ? "rgba(67, 16, 16, 0.85)" // dark red
+                            : game.switch2_status === "SWITCH2_EDITION"
+                                ? "rgba(30, 58, 138, 0.85)" // dark blue
+                                : "rgba(31, 41, 55, 0.92)" // dark gray
+                    };
+                           ">
+                        ${getStatusIndicator(game.switch2_status)}
+                    </div>
+                </div>
+                <div class="flex flex-col flex-grow p-5">
+                    <h3 class="text-lg font-bold text-white mb-1 truncate" title="${game.title
+                    }">${game.title}</h3>
+                    ${game.patchType
+                        ? `
+                        <div class="text-sm mb-2 ${game.patchType.toLowerCase().includes("unpatched")
+                            ? "text-red-400"
+                            : "text-indigo-300"
+                        }">
+                            Patch Type: ${game.patchCellUrl
+                            ? `
+                                <a href="${game.patchCellUrl}" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer" 
+                                   class="font-semibold underline decoration-dotted hover:opacity-80 transition-opacity" 
+                                   title="View in Google Sheets - ${game.patchType}">
+                                    ${game.patchType}
+                                </a>
+                            `
+                            : `<span class="font-semibold">${game.patchType}</span>`
+                        }
+                        </div>
+                    `
+                        : ""
+                    }
+                    <div class="text-xs text-gray-400 mb-3 min-h-[1.25rem]">
+                        ${game.switch2_source
+                        ? `<a href="${game.switch2_source}" target="_blank" rel="noopener noreferrer" 
+class="hover:text-indigo-400 underline decoration-dotted">Source</a>`
+                        : ""
+                    }
+                    </div>
+                    
+                    <!-- Performance Indicators -->
+                    ${(game.fpsStatus && game.fpsData) ||
+                        (game.resolutionStatus && game.resolutionData) ||
+                        (game.loadingStatus && game.loadingData)
+                        ? `
+                        <div class="flex flex-wrap gap-1 mb-3">
+                            ${game.fpsData
+                            ? getPerformanceIndicator(game.fpsStatus, "fps")
+                            : ""
+                        }
+                            ${game.resolutionData
+                            ? getPerformanceIndicator(
+                                game.resolutionStatus,
+                                "resolution"
+                            )
+                            : ""
+                        }
+                            ${game.loadingData
+                            ? getPerformanceIndicator(
+                                game.loadingStatus,
+                                "loading"
+                            )
+                            : ""
+                        }
+                        </div>
+                    `
+                        : ""
+                    }
+                    <div class="flex gap-2 mt-auto">
+                        <a href="https://www.google.com/search?q=${encodeURIComponent(
+                        game.title + " nintendo switch 2 update"
+                    )}" 
+target="_blank" rel="noopener noreferrer"
+                            class="flex-1 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-3 
+rounded-lg transition text-xs sm:text-sm"
+                            title="Search Switch 2 Update News for ${game.title
+                    }">
+                            <i data-lucide="search" class="mr-1 w-4 h-4"></i> Search News
+                        </a>
+                        <!-- Hide Report/contribute button until the feature is implemented -->
+                        <button 
+                        
+                            style="display:none"
+                        
+                            type="button"
+                            class="flex-1 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-3 
+rounded-lg transition text-xs sm:text-sm"
+                            title="Report or contribute update info for ${game.title
+                    }"
+                            onclick="window.prefillContribution && window.prefillContribution('${encodeURIComponent(
+                        game.title
+                    )}')">
+                            <i data-lucide="plus-circle" class="mr-1 w-4 h-4"></i> Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `
+            )
+            .join("");
+        // Re-render icons after DOM update
+        if (typeof lucide !== "undefined") lucide.createIcons();
+
+        // Setup lazy loading after rendering
+        setupLazyLoading();
+    }
+}
+// helper to strip accents and lowercase
+function normalizeText(text) {
+    return text
+        .normalize("NFD") // decompose accents
+        .replace(/[\u0300-\u036f]/g, "") // remove diacritic marks
+        .toLowerCase();
+}
+function handleSearch() {
+    const query = searchInput.value.trim();
+    const normalizedQuery = normalizeText(query);
+    // get filters
+    const showHasUpdate = filterHasUpdate.checked;
+    const showNoUpdate = filterNoUpdate.checked;
+    const showSwitch2Edition = filterSwitch2Edition.checked;
+    const showUnknown = filterUnknown.checked;
+    const showFpsImproved = filterFpsImproved.checked;
+    const showResolutionImproved = filterResolutionImproved.checked;
+    const showLoadingImproved = filterLoadingImproved.checked;
+
+    // If no filters are active, show all games
+    const noFiltersActive =
+        !showHasUpdate &&
+        !showNoUpdate &&
+        !showSwitch2Edition &&
+        !showUnknown &&
+        !showFpsImproved &&
+        !showResolutionImproved &&
+        !showLoadingImproved;
+
+    const filteredGames = allGames.filter((game) => {
+        // Search filter: if there's a query, check title and patch type
+        if (normalizedQuery) {
+            const titleMatch = normalizeText(game.title).includes(normalizedQuery);
+            const patchMatch = game.patchType
+                ? normalizeText(game.patchType).includes(normalizedQuery)
+                : false;
+            if (!titleMatch && !patchMatch) return false;
+        }
+        // If no filters are active, show all games (that pass search)
+        if (noFiltersActive) return true;
+        // Apply status filters
+        const gameStatus = game.switch2_status;
+        const statusMatch =
+            (showHasUpdate && gameStatus === "YES") ||
+            (showNoUpdate && gameStatus === "NO") ||
+            (showSwitch2Edition && gameStatus === "SWITCH2_EDITION") ||
+            (showUnknown && gameStatus === "UNKNOWN");
+
+        // Apply performance filters
+        const fpsMatch = showFpsImproved && game.fpsStatus === "improved";
+        const resolutionMatch =
+            showResolutionImproved && game.resolutionStatus === "improved";
+        const loadingMatch =
+            showLoadingImproved && game.loadingStatus === "improved";
+
+        // If only status filters are active, use status match
+        // If only performance filters are active, use performance match
+        // If both types are active, require at least one match from each type
+        const statusFiltersActive =
+            showHasUpdate || showNoUpdate || showSwitch2Edition || showUnknown;
+        const performanceFiltersActive =
+            showFpsImproved || showResolutionImproved || showLoadingImproved;
+
+        if (statusFiltersActive && performanceFiltersActive) {
+            return statusMatch && (fpsMatch || resolutionMatch || loadingMatch);
+        } else if (statusFiltersActive) {
+            return statusMatch;
+        } else if (performanceFiltersActive) {
+            return fpsMatch || resolutionMatch || loadingMatch;
+        }
+
+        return false;
+    });
+
+    renderGames(filteredGames);
+}
+
+function clearFilters() {
+    filterHasUpdate.checked = false;
+    filterNoUpdate.checked = false;
+    filterSwitch2Edition.checked = false;
+    filterUnknown.checked = false;
+    filterFpsImproved.checked = false;
+    filterResolutionImproved.checked = false;
+    filterLoadingImproved.checked = false;
+    handleSearch();
+}
+
+// --- SIMPLE FORM HANDLING (WITHOUT FIREBASE) ---
+function handleContributionSubmit(e) {
+    e.preventDefault();
+    const gameTitle = document.getElementById("contribution-game-title").value;
+    const status = document.getElementById("contribution-status").value;
+    const source = document.getElementById("contribution-source").value;
+
+    // Since we don't have a backend, we'll just show a message (for implementation, maybe send this to a service like Netlify Forms, Formspree, etc.)
+    console.log("Contribution submitted:", { gameTitle, status, source });
+
+    showToast(
+        "Thank you for your contribution! (Note: This is still a demo - no data was actually saved)"
+    );
+    contributionForm.reset();
+    contributionModal.classList.add("hidden");
+}
+function handleFeedbackSubmit(e) {
+    e.preventDefault();
+    const message = document.getElementById("feedback-message").value;
+
+    // Since we don't have a backend, we'll just show a message
+    console.log("Feedback submitted:", { message });
+
+    showToast(
+        "Thank you for your feedback! (Note: This is still a demo - no data was actually saved)"
+    );
+    feedbackForm.reset();
+    feedbackModal.classList.add("hidden");
+}
+// --- EVENT LISTENERS ---
+searchInput.addEventListener("input", handleSearch);
+
+// Filter event listeners
+filterHasUpdate.addEventListener("change", handleSearch);
+filterNoUpdate.addEventListener("change", handleSearch);
+filterSwitch2Edition.addEventListener("change", handleSearch);
+filterUnknown.addEventListener("change", handleSearch);
+filterFpsImproved.addEventListener("change", handleSearch);
+filterResolutionImproved.addEventListener("change", handleSearch);
+filterLoadingImproved.addEventListener("change", handleSearch);
+clearFiltersBtn.addEventListener("click", clearFilters);
+// Mobile filters toggle
+const mobileFiltersToggle = document.getElementById("mobile-filters-toggle");
+const filtersContainer = document.getElementById("filters-container");
+const filtersChevron = document.getElementById("filters-chevron");
+
+if (mobileFiltersToggle && filtersContainer && filtersChevron) {
+    mobileFiltersToggle.addEventListener("click", () => {
+        filtersContainer.classList.toggle("hidden");
+        filtersChevron.classList.toggle("rotate-180");
+    });
+}
+// Scroll listener to shrink and move the controls on scroll
+const controls = document.getElementById("controls");
+window.addEventListener("scroll", () => {
+    if (window.scrollY > 20) controls.classList.add("scrolled");
+    else controls.classList.remove("scrolled");
+});
+const setupModal = (openBtn, closeBtn, modal) => {
+    if (openBtn && closeBtn && modal) {
+        openBtn.addEventListener("click", () => modal.classList.remove("hidden"));
+        closeBtn.addEventListener("click", () => modal.classList.add("hidden"));
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) modal.classList.add("hidden");
+        });
+    }
+};
+setupModal(
+    openContributionModalBtn,
+    closeContributionModalBtn,
+    contributionModal
+);
+setupModal(openFeedbackModalBtn, closeFeedbackModalBtn, feedbackModal);
+contributionForm.addEventListener("submit", handleContributionSubmit);
+feedbackForm.addEventListener("submit", handleFeedbackSubmit);
+// Fallback: always allow closing the contribution modal via the close button
+if (closeContributionModalBtn && contributionModal) {
+    closeContributionModalBtn.addEventListener("click", () =>
+        contributionModal.classList.add("hidden")
+    );
+}
+// --- INITIALIZATION ---
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        // Wait a bit to ensure Lucide is fully loaded
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // Initialize Lucide icons first
+        if (typeof lucide !== "undefined") {
+            lucide.createIcons();
+        }
+
+        // Then fetch and process games
+        await fetchAndProcessGames();
+
+        // Refresh icons after content is loaded
+        if (typeof lucide !== "undefined") {
+            lucide.createIcons();
+        }
+    } catch (error) {
+        console.error("Application initialization failed:", error);
+        loader.innerHTML = `<p class="text-red-500">Failed to initialize application: ${error.message}</p>`;
+    }
+});
+// Add this helper to window for button onclick
+window.prefillContribution = function (title) {
+    const decodedTitle = decodeURIComponent(title);
+    const input = document.getElementById("contribution-game-title");
+    if (input) input.value = decodedTitle;
+    const modal = document.getElementById("contribution-modal");
+    if (modal) modal.classList.remove("hidden");
+};
